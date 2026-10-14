@@ -520,6 +520,7 @@ addEventListener('pagehide', () => { if (D && EDIT) persist(); });
 
 async function boot() {
   try {
+    $('#main').innerHTML = '<div class="skeleton" style="color:var(--accent)">جاري بدء التشغيل…</div>';
     DOC = new URLSearchParams(location.search).get('d');
     try { D = await (await fetch('data.json', { cache: 'no-store' })).json(); }
     catch (e) { $('#main').innerHTML = '<div class="skeleton">تعذر تحميل بيانات المتابعة. أعد فتح الصفحة.</div>'; return; }

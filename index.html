@@ -519,36 +519,41 @@ function saveState() {
 addEventListener('pagehide', () => { if (D && EDIT) persist(); });
 
 async function boot() {
-  DOC = new URLSearchParams(location.search).get('d');
-  try { D = await (await fetch('data.json', { cache: 'no-store' })).json(); }
-  catch (e) { $('#main').innerHTML = '<div class="skeleton">تعذر تحميل بيانات المتابعة. أعد فتح الصفحة.</div>'; return; }
-  D.cfgAt = D.cfgAt || 1;
-  route.tab = ls.get('rukba.tab') || 'home';
-  if (window.claude?.use) {                       // داخل Claude
-    MODE = 'claude'; EDIT = false;
-    const st = ls.get(STORE); let local = null; if (st) { try { local = JSON.parse(st); } catch {} }
+  try {
+    DOC = new URLSearchParams(location.search).get('d');
+    try { D = await (await fetch('data.json', { cache: 'no-store' })).json(); }
+    catch (e) { $('#main').innerHTML = '<div class="skeleton">تعذر تحميل بيانات المتابعة. أعد فتح الصفحة.</div>'; return; }
+    D.cfgAt = D.cfgAt || 1;
+    route.tab = ls.get('rukba.tab') || 'home';
+    if (window.claude?.use) {                       // داخل Claude
+      MODE = 'claude'; EDIT = false;
+      const st = ls.get(STORE); let local = null; if (st) { try { local = JSON.parse(st); } catch {} }
+      setMode(); renderTabs(); render();
+      const [art, usr, smp, dl] = await Promise.all(['artifact', 'user', 'sample', 'downloads'].map(n => window.claude.use(n).catch(() => null)));
+      CAP.artifact = art; CAP.sample = smp; CAP.downloads = dl;
+      let canEdit = false; try { canEdit = usr ? await usr.canEdit() : false; } catch {}
+      EDIT = !!(art && canEdit);
+      if (EDIT && local && mergeInto(D, local)) dirty = true;
+      setMode(); renderTabs(); render();
+      if (EDIT && dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 1500); }
+      return;
+    }
+    if (DOC) {                                      // رابط الدكتور على GitHub
+      EDIT = false;
+      try { const r = await Sync.read(await Sync.api('/gists/' + encodeURIComponent(DOC), {}, false)); if (r) mergeInto(D, r); }
+      catch { toast('تعذر جلب آخر البيانات، المعروض نسخة سابقة'); }
+      route.tab = 'home'; setMode(); renderTabs(); render(); return;
+    }
+    const st = ls.get(STORE);
+    if (st) { try { mergeInto(D, JSON.parse(st)); } catch {} }
+    else { const o = ls.get(OLD); if (o) { try { const n = importData(JSON.parse(o)); D.cfgAt = Date.now(); if (n) setTimeout(() => toast(`انقلت ${n} يوم من النسخة القديمة`), 800); } catch {} } }
+    persist();
     setMode(); renderTabs(); render();
-    const [art, usr, smp, dl] = await Promise.all(['artifact', 'user', 'sample', 'downloads'].map(n => window.claude.use(n).catch(() => null)));
-    CAP.artifact = art; CAP.sample = smp; CAP.downloads = dl;
-    let canEdit = false; try { canEdit = usr ? await usr.canEdit() : false; } catch {}
-    EDIT = !!(art && canEdit);
-    if (EDIT && local && mergeInto(D, local)) dirty = true;
-    setMode(); renderTabs(); render();
-    if (EDIT && dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 1500); }
-    return;
+    if (Sync.enabled()) saveCloud(true);
+  } catch (e) {
+    console.error('Boot error:', e);
+    $('#main').innerHTML = '<div class="skeleton" style="color:var(--bad);padding:20px">خطأ في التشغيل:<br><pre style="direction:ltr;font-size:12px;overflow:auto">' + esc(e.stack || e.message || String(e)) + '</pre></div>';
   }
-  if (DOC) {                                      // رابط الدكتور على GitHub
-    EDIT = false;
-    try { const r = await Sync.read(await Sync.api('/gists/' + encodeURIComponent(DOC), {}, false)); if (r) mergeInto(D, r); }
-    catch { toast('تعذر جلب آخر البيانات، المعروض نسخة سابقة'); }
-    route.tab = 'home'; setMode(); renderTabs(); render(); return;
-  }
-  const st = ls.get(STORE);
-  if (st) { try { mergeInto(D, JSON.parse(st)); } catch {} }
-  else { const o = ls.get(OLD); if (o) { try { const n = importData(JSON.parse(o)); D.cfgAt = Date.now(); if (n) setTimeout(() => toast(`انقلت ${n} يوم من النسخة القديمة`), 800); } catch {} } }
-  persist();
-  setMode(); renderTabs(); render();
-  if (Sync.enabled()) saveCloud(true);
 }
 function setMode() {
   const m = $('#mode');

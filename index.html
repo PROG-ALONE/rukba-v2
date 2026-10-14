@@ -1,0 +1,1641 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b6e6e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="رُكبة">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>رُكبة</title>
+<meta name="description" content="متابعة تأهيل الوتر الرضفي مع المعالج الطبيعي">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Kufi+Arabic:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* التخطيط: شريط علوي ثابت + تبويبات، ومحتوى بعمود واحد على الموبايل وشبكة على الآيباد */
+:root {
+  --bg: #eef3f2; --surface: #ffffff; --surface-2: #f4f8f7; --ink: #11282a; --ink-2: #47605f; --muted: #7c918f; --line: #d6e1df;
+  --accent: #0d6d6a; --accent-ink: #ffffff; --accent-soft: #d6ecea;
+  --path: #c27b14; --path-soft: #f7ead2;
+  --ok: #1f8a4c; --ok-soft: #dbf1e3; --warn: #b77700; --warn-soft: #faefd3; --bad: #c83a3a; --bad-soft: #f9dfdf;
+  --bone: #e9dcc0; --bone-line: #a8936a; --muscle: #d77a6f; --muscle-line: #a84b42; --tendon: #f3ecd9; --tendon-line: #b49a5d; --nerve: #e3b729; --skin: #f1d9c7;
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a;
+  --f-display: 'Noto Kufi Arabic', 'Geeza Pro', Tahoma, sans-serif;
+  --f-body: 'IBM Plex Sans Arabic', -apple-system, 'SF Arabic', 'Geeza Pro', Tahoma, sans-serif;
+  --r: 14px;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0d1718; --surface: #142224; --surface-2: #1a2c2e; --ink: #e5efee; --ink-2: #a6bcba; --muted: #7d9593; --line: #29403f;
+  --accent: #3fb6b0; --accent-ink: #062020; --accent-soft: #173d3c; --path: #e3a23c; --path-soft: #3a2c13;
+  --ok: #4cc27f; --ok-soft: #173a27; --warn: #e0a42c; --warn-soft: #3b2f12; --bad: #ec6b6b; --bad-soft: #3d1f1f;
+  --bone: #5c5240; --bone-line: #c2ad80; --muscle: #8f4a43; --muscle-line: #e0857a; --tendon: #6c6247; --tendon-line: #d9c18a; --nerve: #f0c93f; --skin: #4a3a31;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0d1718; --surface: #142224; --surface-2: #1a2c2e; --ink: #e5efee; --ink-2: #a6bcba; --muted: #7d9593; --line: #29403f;
+  --accent: #3fb6b0; --accent-ink: #062020; --accent-soft: #173d3c; --path: #e3a23c; --path-soft: #3a2c13;
+  --ok: #4cc27f; --ok-soft: #173a27; --warn: #e0a42c; --warn-soft: #3b2f12; --bad: #ec6b6b; --bad-soft: #3d1f1f;
+  --bone: #5c5240; --bone-line: #c2ad80; --muscle: #8f4a43; --muscle-line: #e0857a; --tendon: #6c6247; --tendon-line: #d9c18a; --nerve: #f0c93f; --skin: #4a3a31;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15.5px; line-height: 1.65; margin: 0; }
+body { direction: rtl; }
+a { color: var(--accent); }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--series-1); outline-offset: 2px; }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+.num { font-variant-numeric: tabular-nums; }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.35; text-wrap: balance; margin: 0; }
+
+/* ---------- الهيكل ---------- */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 1180px; margin: 0 auto; padding: 10px 16px 0; }
+.brandrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand b { font-family: var(--f-display); font-size: 22px; font-weight: 800; }
+.brand small { display: block; font-size: 12px; color: var(--muted); line-height: 1.2; }
+.grow { flex: 1; }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); } .badge.warn { background: var(--warn-soft); color: var(--warn); } .badge.bad { background: var(--bad-soft); color: var(--bad); } .badge.acc { background: var(--accent-soft); color: var(--accent); } .badge.path { background: var(--path-soft); color: var(--path); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.tabs { display: flex; gap: 4px; overflow-x: auto; padding: 10px 0 8px; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button { border: 0; background: transparent; padding: 7px 14px; border-radius: 10px; white-space: nowrap; cursor: pointer; color: var(--ink-2); font-weight: 500; }
+.tabs button[aria-current="page"] { background: var(--ink); color: var(--bg); font-weight: 600; }
+main { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 80px; }
+.head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.head h1 { font-size: clamp(22px, 3vw, 30px); }
+.head p { margin: 4px 0 0; color: var(--ink-2); }
+
+.grid { display: grid; gap: 14px; }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (max-width: 960px) { .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .g3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 620px) { .g2, .g3 { grid-template-columns: 1fr; } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
+.card h2 { font-size: 17px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sub { color: var(--ink-2); } .muted { color: var(--muted); font-size: 13.5px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.stack { display: flex; flex-direction: column; gap: 14px; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 6px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-weight: 600; text-decoration: none; color: var(--ink); }
+.btn:hover { background: var(--surface-2); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.ai { background: var(--path-soft); color: var(--path); border-color: transparent; }
+.btn.sm { min-height: 34px; padding: 4px 11px; font-size: 14px; }
+.btn.danger { color: var(--bad); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.note { border-radius: 12px; padding: 10px 14px; font-size: 14.5px; background: var(--accent-soft); }
+.note.warn { background: var(--warn-soft); } .note.bad { background: var(--bad-soft); } .note.path { background: var(--path-soft); }
+label.f { display: block; font-size: 13px; color: var(--ink-2); font-weight: 500; }
+input[type=number], input[type=text], input[type=password], input[type=date], input[type=url], select, textarea { width: 100%; min-height: 42px; padding: 7px 11px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface-2); margin-top: 4px; }
+input[type=number] { direction: ltr; text-align: right; }
+textarea { min-height: 90px; resize: vertical; line-height: 1.6; }
+.t-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; }
+table.t { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.t th, .t td { padding: 7px 8px; border-bottom: 1px solid var(--line); text-align: center; white-space: nowrap; }
+.t th { background: var(--surface-2); font-size: 12px; color: var(--ink-2); position: sticky; top: 0; }
+.t td.l, .t th.l { text-align: start; }
+.t tr:last-child td { border-bottom: 0; }
+.c-done { color: var(--ok); font-weight: 700; } .c-skip { color: var(--bad); font-weight: 700; } .c-na { color: var(--muted); }
+
+/* ---------- الشاشة ---------- */
+.journey { padding: 14px 16px 6px; overflow: hidden; }
+.journey svg { width: 100%; height: auto; display: block; direction: ltr; }
+.journey .lbl { font-family: var(--f-body); font-size: 11px; fill: var(--ink-2); }
+.journey .lbl.b { font-weight: 700; fill: var(--ink); font-size: 12px; }
+.pulse { animation: pulse 2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes pulse { 0%,100% { opacity: .9; transform: scale(1); } 50% { opacity: .25; transform: scale(1.9); } }
+@media (prefers-reduced-motion: reduce) { .pulse { animation: none; } }
+.kpi .l { font-size: 13px; color: var(--ink-2); }
+.kpi .v { font-family: var(--f-display); font-size: 26px; font-weight: 700; line-height: 1.3; font-variant-numeric: tabular-nums; }
+.kpi .v small { font-family: var(--f-body); font-size: 13px; color: var(--muted); font-weight: 400; }
+.kpi .d { font-size: 12.5px; color: var(--muted); }
+.meter { height: 7px; border-radius: 9px; background: var(--accent-soft); overflow: hidden; margin-top: 8px; }
+.meter > i { display: block; height: 100%; background: var(--accent); border-radius: 9px; }
+.gauge { display: flex; flex-direction: column; align-items: center; }
+.gauge svg { width: 100%; max-width: 260px; height: auto; direction: ltr; }
+
+/* ---------- السجل ---------- */
+.ex-row { display: grid; grid-template-columns: 44px 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.ex-row:last-child { border-bottom: 0; }
+.chk { width: 44px; height: 44px; border-radius: 12px; border: 2px solid var(--line); background: var(--surface-2); display: grid; place-items: center; cursor: pointer; font-size: 20px; font-weight: 700; color: transparent; }
+.chk[data-s="done"] { background: var(--ok); border-color: var(--ok); color: #fff; }
+.chk[data-s="skip"] { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.ex-n { font-weight: 600; direction: ltr; text-align: right; unicode-bidi: plaintext; }
+.ex-m { font-size: 12.5px; color: var(--ink-2); }
+.scale { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 3px; margin-top: 4px; }
+.scale button { min-height: 38px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2); cursor: pointer; font-weight: 600; padding: 0; font-variant-numeric: tabular-nums; }
+.scale button[aria-pressed="true"] { color: #fff; border-color: transparent; }
+.datebar { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.datebar input { width: auto; margin: 0; }
+
+/* ---------- الجدول ---------- */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px; }
+.cal .dh { font-size: 11.5px; color: var(--muted); text-align: center; }
+.cal .c { aspect-ratio: 1; border-radius: 9px; border: 1px solid var(--line); background: var(--surface-2); display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; position: relative; overflow: hidden; }
+.cal .c .fill { position: absolute; inset: auto 0 0 0; background: var(--accent); opacity: .85; }
+.cal .c span { position: relative; z-index: 1; font-weight: 600; }
+.cal .c.full span { color: var(--accent-ink); }
+.cal .c i { position: relative; z-index: 1; width: 7px; height: 7px; border-radius: 50%; margin-top: 2px; }
+.cal .c.empty { visibility: hidden; }
+.cal .c.today { outline: 2px solid var(--ink); }
+.cal .c.out { opacity: .35; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-inline-end: 5px; vertical-align: -1px; }
+
+/* ---------- الخطة ---------- */
+.lv { display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px dashed var(--line); }
+.lv:last-child { border-bottom: 0; }
+.lv .n { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-family: var(--f-display); border: 2px solid var(--line); color: var(--muted); }
+.lv.done .n { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.lv.now .n { border-color: var(--path); color: var(--path); box-shadow: 0 0 0 4px var(--path-soft); }
+.exc { border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.exc ol { margin: 6px 0 0; padding-inline-start: 20px; font-size: 14px; }
+.exc .dose { display: inline-block; background: var(--surface-2); border-radius: 8px; padding: 2px 9px; font-size: 13px; }
+
+/* ---------- الإصابة ---------- */
+.knee { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 860px) { .knee { grid-template-columns: 1fr; } }
+.knee svg { width: 100%; height: auto; display: block; direction: ltr; max-height: 560px; }
+.layer-toggles { display: flex; gap: 6px; flex-wrap: wrap; }
+.layer-toggles button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 4px 12px; cursor: pointer; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px; }
+.layer-toggles button[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.layer-toggles i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.stage-slider { width: 100%; accent-color: var(--path); }
+.stages { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--muted); gap: 4px; }
+.stages span { flex: 1; text-align: center; cursor: pointer; }
+.stages span.on { color: var(--path); font-weight: 700; }
+.what { display: grid; gap: 8px; }
+.what div { background: var(--surface-2); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+.what b { display: block; font-size: 12.5px; color: var(--muted); }
+.refs li { direction: ltr; text-align: left; font-size: 13px; margin-bottom: 6px; color: var(--ink-2); }
+.tl { position: relative; padding-inline-start: 22px; }
+.tl::before { content: ''; position: absolute; inset-inline-start: 7px; top: 6px; bottom: 6px; width: 2px; background: var(--line); }
+.tl > div { position: relative; padding-bottom: 14px; }
+.tl > div::before { content: ''; position: absolute; inset-inline-start: -20px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--muted); }
+.tl > div.peak::before { border-color: var(--ok); } .tl > div.warn::before { border-color: var(--warn); } .tl > div.down::before { border-color: var(--bad); }
+.tl > div.key::before { background: var(--path); border-color: var(--path); } .tl > div.start::before { background: var(--accent); border-color: var(--accent); }
+.tl b { display: block; } .tl small { color: var(--muted); }
+
+/* ---------- عام ---------- */
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; direction: ltr; }
+.chart .gl { stroke: var(--line); stroke-width: 1; }
+.chart .ax { fill: var(--muted); font-size: 10.5px; font-family: var(--f-body); }
+.chart .tip { position: absolute; top: 0; pointer-events: none; background: var(--ink); color: var(--bg); font-size: 12px; padding: 5px 9px; border-radius: 7px; white-space: nowrap; opacity: 0; transform: translate(-50%, -105%); z-index: 5; }
+.chart .tip.show { opacity: 1; }
+dialog { border: 0; border-radius: 16px; padding: 0; width: min(640px, 94vw); background: var(--surface); color: var(--ink); }
+dialog::backdrop { background: rgba(5, 15, 15, .55); }
+dialog .dh { padding: 16px 18px 0; font-family: var(--f-display); font-weight: 700; font-size: 17px; }
+dialog .db { padding: 12px 18px; max-height: 70vh; overflow-y: auto; }
+dialog .df { padding: 10px 18px 16px; display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+.toast { position: fixed; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 9px 16px; border-radius: 12px; z-index: 50; opacity: 0; transition: opacity .2s; pointer-events: none; font-size: 14px; }
+.toast.show { opacity: 1; }
+.viewer-banner { background: var(--path-soft); color: var(--ink); border-radius: 12px; padding: 8px 14px; font-size: 14px; margin-bottom: 14px; }
+.skeleton { padding: 40px 16px; text-align: center; color: var(--muted); }
+.paper { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 22px; }
+.paper h2 { font-size: 15px; margin: 20px 0 8px; padding-bottom: 5px; border-bottom: 2px solid var(--accent); color: var(--accent); }
+.rptgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.rptcard { text-align: start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; cursor: pointer; font: inherit; color: inherit; display: flex; flex-direction: column; gap: 4px; }
+.rptcard b { font-family: var(--f-display); font-size: 14.5px; }
+.rptcard span { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
+.rptcard.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); }
+.rptcard.sel b { color: var(--accent); }
+@media print { .top, .tabs, .iconbtn, .seg, .btn, .viewer-banner, .head .row { display: none !important; } body { background: #fff; } main { padding: 0; max-width: none; } .card { border: 0; padding: 0; } .paper { border: 0; padding: 0; } main > * { animation: none !important; } }
+/* إعادة رسم مخطط الركبة التفاعلي */
+.anat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 760px) { .anat { grid-template-columns: 1fr; } }
+.ab { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.anat .ab { background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.anat .ab b { display: block; font-size: 13.5px; color: var(--accent); margin-bottom: 2px; }
+.anat .ab p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+.phen { display: grid; gap: 8px; }
+.phen .ph-row { display: grid; grid-template-columns: auto 1fr; gap: 10px; align-items: start; background: var(--surface-2); border: 1px solid transparent; border-radius: 10px; padding: 9px 12px; }
+.phen .ph-row.hov:hover { border-color: var(--line); }
+.phen .ph-row .ic { font-size: 18px; line-height: 1.4; }
+.phen .ph-row b { display: block; font-size: 13.5px; }
+.phen .ph-row span { font-size: 13px; color: var(--ink-2); }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.chip { border: 1px solid var(--line); background: var(--surface-2); border-radius: 999px; padding: 5px 12px; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--ink-2); }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip:hover { border-color: var(--accent); }
+.xr { display: grid; gap: 12px; }
+.xr img { width: 100%; border-radius: 10px; border: 1px solid var(--line); display: block; }
+.xr figcaption { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+/* ================= تبسيط + حركة ================= */
+.top-in { padding-bottom: 0; }
+.tabs { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; padding: 8px 0; max-width: 620px; margin-inline: auto; overflow: visible; }
+.tabs button { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 12px; font-size: 13px; transition: background .2s, color .2s; }
+.tabs button svg { width: 22px; height: 22px; transition: transform .25s cubic-bezier(.3,1.4,.5,1); }
+.tabs button:hover { background: var(--surface-2); color: var(--ink); }
+.tabs button:hover svg { transform: translateY(-2px) scale(1.1); }
+.tabs button[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.iconbtn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; cursor: pointer; color: var(--ink-2); transition: transform .35s, color .2s, background .2s; padding: 0; }
+.iconbtn svg { width: 21px; height: 21px; }
+.iconbtn:hover { color: var(--accent); transform: rotate(45deg); }
+.iconbtn[aria-current] { background: var(--ink); color: var(--bg); }
+.badge[hidden] { display: none; }
+
+.hov { transition: transform .22s cubic-bezier(.2,.8,.2,1), box-shadow .22s, border-color .22s, background .22s; }
+.hov:hover { transform: translateY(-3px); box-shadow: 0 12px 26px -16px color-mix(in srgb, var(--ink) 55%, transparent); border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+.btn { transition: transform .15s, background .2s, box-shadow .2s, border-color .2s; }
+.btn:hover:not(:disabled) { transform: translateY(-1px); border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn.primary:hover:not(:disabled) { box-shadow: 0 6px 16px -8px var(--accent); }
+.btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+.btn.ghost:hover { background: var(--surface-2); }
+main > * { animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
+main > *:nth-child(2) { animation-delay: .05s; } main > *:nth-child(3) { animation-delay: .1s; } main > *:nth-child(4) { animation-delay: .15s; } main > *:nth-child(5) { animation-delay: .2s; }
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } }
+.meter > i { animation: grow .9s cubic-bezier(.2,.8,.2,1) both; transform-origin: right; }
+@keyframes grow { from { width: 0; } }
+.head h1 { font-size: clamp(22px, 3vw, 28px); }
+
+/* الطريق */
+.journey { position: relative; }
+.journey .jp { cursor: pointer; outline: none; }
+.journey .jp .m { transform-box: fill-box; transform-origin: center; transition: transform .25s cubic-bezier(.3,1.5,.5,1); }
+.journey .jp:hover .m, .journey .jp.on .m, .journey .jp:focus-visible .m { transform: scale(1.6); }
+.journey .jp .lbl { transition: fill .2s; } .journey .jp.on .lbl.b { fill: var(--accent); }
+.jdone { stroke-dasharray: 100; animation: draw 1.6s .2s cubic-bezier(.4,0,.2,1) both; }
+@keyframes draw { from { stroke-dashoffset: 100; } }
+.jtip { position: absolute; z-index: 6; width: min(260px, 80%); transform: translate(-50%, 0); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 13.5px; box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--ink) 60%, transparent); pointer-events: none; animation: pop .18s ease-out; }
+.jtip.up { transform: translate(-50%, -100%); }
+.jtip div { margin-top: 3px; } .jtip .muted { font-size: 12.5px; }
+@keyframes pop { from { opacity: 0; } }
+.jhint { margin: 0; font-size: 12.5px; }
+.jwrap { overflow-x: auto; direction: ltr; scrollbar-width: thin; }
+@media (max-width: 700px) { .journey .jwrap svg { min-width: 760px; } }
+
+/* الرئيسية */
+.home3 { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 14px; align-items: start; }
+@media (max-width: 980px) { .home3 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .home3 { grid-template-columns: 1fr; } }
+.lvname { font-family: var(--f-display); font-size: 18px; }
+.crit { display: grid; gap: 6px; }
+.crit div { background: var(--surface-2); border: 1px solid transparent; border-radius: 10px; padding: 6px 10px; font-size: 14px; }
+.crit div::before { content: '◇'; color: var(--path); margin-inline-end: 6px; }
+.cyc { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tile { background: var(--surface-2); border: 1px solid transparent; border-radius: 12px; padding: 10px 12px; min-width: 0; }
+.tile span { display: block; font-size: 12.5px; color: var(--ink-2); }
+.tile b { font-family: var(--f-display); font-size: 22px; font-variant-numeric: tabular-nums; }
+.tile small { color: var(--muted); font-size: 12px; margin-inline-start: 4px; }
+.tile .meter { margin-top: 6px; height: 5px; }
+.gauge .garc { stroke-dasharray: 100; animation: draw 1.3s cubic-bezier(.3,1,.5,1) both; }
+.needle { transform: rotate(var(--a)); transform-origin: 130px 130px; animation: needle 1.4s cubic-bezier(.3,1.35,.5,1) both; }
+@keyframes needle { from { transform: rotate(0deg); } }
+.gmark circle { transform-box: fill-box; transform-origin: center; transition: transform .25s; } .gauge:hover .gmark circle { transform: scale(1.35); }
+.goals { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.goal { display: flex; flex-direction: column; align-items: center; gap: 2px; text-align: center; background: var(--surface-2); border: 1px solid transparent; border-radius: 14px; padding: 12px 8px; font: inherit; color: inherit; }
+button.goal { cursor: pointer; }
+.goal .ring { width: 66px; height: 66px; }
+.goal .rg { animation: ringfill 1.1s .15s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes ringfill { from { stroke-dashoffset: var(--c); } }
+.goal .gt { font-weight: 600; font-size: 14px; line-height: 1.35; }
+.goal .gv { font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.goal .gx { font-size: 11.5px; color: var(--path); }
+.goal.ok { background: var(--ok-soft); }
+
+/* السجل */
+.seg { display: inline-flex; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 7px 12px; border-radius: 9px; cursor: pointer; font-weight: 600; color: var(--ink-2); transition: background .2s, color .2s; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-selected="true"] { background: var(--surface); color: var(--accent); box-shadow: 0 2px 8px -4px color-mix(in srgb, var(--ink) 40%, transparent); }
+.cal .c { transition: transform .18s cubic-bezier(.3,1.4,.5,1), box-shadow .18s; font: inherit; color: inherit; padding: 0; }
+.cal .c:hover:not(.empty) { transform: scale(1.12); z-index: 2; box-shadow: 0 6px 14px -6px color-mix(in srgb, var(--ink) 50%, transparent); }
+.cal .c.sel { outline: 2px solid var(--path); outline-offset: 1px; }
+.cal .c .fill { animation: fillup .6s cubic-bezier(.2,.8,.2,1) both; transform-origin: bottom; }
+@keyframes fillup { from { transform: scaleY(0); } }
+#dayDetail { min-height: 220px; }
+.exdots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+.xd { font-size: 11px; direction: ltr; padding: 2px 7px; border-radius: 7px; background: var(--surface-2); color: var(--muted); }
+.xd.y { background: var(--ok-soft); color: var(--ok); } .xd.n { background: var(--bad-soft); color: var(--bad); }
+.dnote { white-space: pre-wrap; margin: 10px 0 0; background: var(--surface-2); border-radius: 10px; padding: 8px 12px; font-size: 14px; }
+
+/* الخطة */
+.stepper { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; position: relative; margin-bottom: 14px; }
+.stepper::before { content: ''; position: absolute; top: 19px; inset-inline: 8%; height: 3px; background: var(--line); border-radius: 3px; }
+.stp { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 0; background: transparent; cursor: pointer; padding: 0 2px; color: var(--ink-2); font: inherit; }
+.stp .n { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-family: var(--f-display); background: var(--surface); border: 2px solid var(--line); transition: transform .25s cubic-bezier(.3,1.5,.5,1), box-shadow .25s; }
+.stp .t { font-size: 12px; line-height: 1.35; text-align: center; }
+.stp:hover .n { transform: scale(1.12); }
+.stp.done .n { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.stp.now .n { border-color: var(--path); color: var(--path); box-shadow: 0 0 0 5px var(--path-soft); }
+.stp.sel .t { color: var(--ink); font-weight: 700; }
+.stp.sel .n { transform: scale(1.12); }
+.lvd { animation: rise .35s both; }
+.exgrid { align-items: start; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.exgrid.one { grid-template-columns: 1fr; }
+.exc { background: var(--surface); }
+.exn { display: block; font-size: 15px; }
+.exar { font-size: 13px; color: var(--ink-2); }
+.dose.sug { background: var(--path-soft); color: var(--path); }
+.exmore ol { margin: 6px 0 2px; }
+.exmore { max-height: 0; overflow: hidden; transition: max-height .35s ease; }
+.exc.open .exmore { max-height: 600px; }
+.oldph { border-top: 1px solid var(--line); padding: 10px 0; }
+.oldph:first-of-type { border-top: 0; padding-top: 0; }
+.oldph summary { cursor: pointer; display: flex; flex-direction: column; gap: 2px; list-style: none; }
+.oldph summary::-webkit-details-marker { display: none; }
+.oldph summary b::before { content: '▸ '; color: var(--muted); }
+.oldph[open] summary b::before { content: '▾ '; }
+.oldph[open] summary { margin-bottom: 10px; }
+.tl > div.hov { border-radius: 10px; padding: 4px 8px 12px; margin-inline-start: -8px; }
+.tl > div.hov::before { inset-inline-start: -12px; }
+details.more { margin-top: 8px; } details.more summary { cursor: pointer; color: var(--ink-2); font-size: 14px; }
+.exf { border: 1px solid var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: var(--surface-2); animation: rise .3s both; }
+.exf-n { font-family: var(--f-display); font-size: 14px; color: var(--accent); }
+.dosef { display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr); gap: 8px; align-items: end; }
+.seg.sm { margin-top: 4px; display: flex; } .seg.sm button { padding: 8px 12px; font-size: 14px; }
+.thinking { display: flex; align-items: center; gap: 6px; color: var(--ink-2); padding: 10px 0; }
+.thinking span { width: 8px; height: 8px; border-radius: 50%; background: var(--path); animation: blink 1s infinite ease-in-out; }
+.thinking span:nth-child(2) { animation-delay: .15s; } .thinking span:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 100% { opacity: .2; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+
+/* الإصابة */
+#kneeBox .ly { transition: opacity .25s, filter .25s; cursor: pointer; }
+#kneeBox svg.focus .ly:not(.on) { opacity: .18; }
+#kneeBox svg.focus .ly.on { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--path) 60%, transparent)); }
+.what div { border: 1px solid transparent; cursor: default; }
+.what div.lit { border-color: var(--path); background: var(--path-soft); }
+.map .me, .map .mn { transition: opacity .2s, stroke .2s; }
+.map .mn rect { transition: stroke-width .2s; } .map .mn { cursor: default; }
+.map.dim .me:not(.hl) { opacity: .12; } .map.dim .mn:not(.hl) { opacity: .35; }
+.map .me.hl { stroke: var(--accent); stroke-width: 2.4; } .map .mn.hl rect { stroke-width: 3; }
+.xr { grid-template-columns: 1fr; }
+.xr figure { border-radius: 12px; padding: 4px; border: 1px solid transparent; }
+.xr img { transition: transform .35s; } .xr figure:hover img { transform: scale(1.02); }
+.refsbox summary { cursor: pointer; list-style: none; } .refsbox summary::-webkit-details-marker { display: none; }
+.refsbox[open] summary { margin-bottom: 8px; }
+.scale button { transition: transform .15s; } .scale button:hover { transform: translateY(-2px); }
+.chk { transition: transform .2s cubic-bezier(.3,1.5,.5,1), background .2s; } .chk:hover { transform: scale(1.08); } .chk:active { transform: scale(.92); }
+.layer-toggles button { transition: background .2s, color .2s, transform .15s; } .layer-toggles button:hover { transform: translateY(-1px); }
+
+@media (max-width: 520px) {
+  .tabs button { font-size: 11.5px; } .stp .t { font-size: 10.5px; } .stp .n { width: 34px; height: 34px; } .stepper::before { top: 16px; }
+  .brand small { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="top-in">
+  <div class="brandrow">
+    <div class="brand"><svg width="34" height="34" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="var(--accent)"/><path d="M14 6c1 6 1.5 9 4.5 12.5" stroke="var(--accent-ink)" stroke-width="3" stroke-linecap="round" fill="none"/><ellipse cx="21" cy="20" rx="4" ry="5" fill="var(--accent-ink)"/><path d="M21.5 25c.3 3.5 1 6 3.5 9" stroke="var(--path)" stroke-width="3" stroke-linecap="round" fill="none"/></svg>
+      <div><b>رُكبة</b><small>الطريق إلى السجدة</small></div></div>
+    <span class="grow"></span>
+    <span id="mode" class="badge" hidden></span>
+    <span id="save" class="badge" hidden></span>
+    <button class="iconbtn" id="gear" aria-label="الإعدادات" hidden></button>
+  </div>
+  <nav class="tabs" id="tabs" aria-label="الأقسام"></nav>
+</div></header>
+<main id="main"><div class="skeleton">جاري تحميل بيانات المتابعة…</div></main>
+
+<script>
+'use strict';
+/* ================= أدوات ================= */
+const $ = (s, el = document) => el.querySelector(s), $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const clone = o => JSON.parse(JSON.stringify(o));
+const r0 = Math.round, r1 = n => Math.round(n * 10) / 10;
+const fmt = (n, d = 0) => n == null || isNaN(n) ? '—' : Number(n).toLocaleString('en-US', { maximumFractionDigits: d });
+const num = v => (v === '' || v == null || isNaN(+v)) ? null : +v;
+const avg = a => { const v = a.filter(x => x != null && !isNaN(x)); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; };
+const sum = a => a.filter(x => x != null && !isNaN(x)).reduce((s, x) => s + x, 0);
+const uid = p => p + '_' + Math.random().toString(36).slice(2, 8);
+const pad = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, (m || 1) - 1, d || 1, 12); };
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const today = () => iso(new Date());
+const range = (a, b) => { const o = []; for (let d = a; d <= b; d = addDays(d, 1)) o.push(d); return o; };
+const fD = (s, o) => new Intl.DateTimeFormat('ar-IQ-u-nu-latn', o || { day: 'numeric', month: 'long' }).format(parse(s));
+const fS = s => { const d = parse(s); return `${d.getDate()}/${d.getMonth() + 1}`; };
+const wd = s => new Intl.DateTimeFormat('ar-IQ', { weekday: 'short' }).format(parse(s));
+const fMonth = s => { const p = s.split('-'); if (p.length === 1) return p[0]; return new Intl.DateTimeFormat('ar-IQ-u-nu-latn', p.length === 2 ? { month: 'long', year: 'numeric' } : { day: 'numeric', month: 'long', year: 'numeric' }).format(parse(s)); };
+let toastT; function toast(m) { let t = $('.toast'); if (!t) { t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status'); document.body.append(t); } t.textContent = m; t.classList.add('show'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2600); }
+const ls = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} }, del(k) { try { localStorage.removeItem(k); } catch {} } };
+
+/* ================= الحالة والمزامنة ================= */
+// يشتغل بمكانين: GitHub Pages (حفظ على الجهاز + Gist) وداخل Claude (حفظ بالسحابة)
+let D = null;
+let EDIT = true;            // صاحب المتابعة؛ رابط الدكتور للعرض فقط
+let MODE = 'gh';            // gh | claude
+let DOC = null;             // رقم الـ Gist برابط الدكتور
+const CAP = { artifact: null, sample: null, downloads: { async save({ filename, data }) {
+  const b = data instanceof Blob ? data : new Blob([data], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; document.body.append(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+} } };
+const STORE = 'rukba.data.v2', OLD = 'rukba.data.v1', SKEY = 'rukba.secrets.v1', GFILE = 'rukba-v2.json';
+let saveTimer = null, saving = false, dirty = false;
+
+function mergeInto(local, remote) {
+  let changed = false;
+  for (const [d, r] of Object.entries(remote.logs || {})) {
+    const l = local.logs[d];
+    if (!l || (r.updatedAt || 0) > (l.updatedAt || 0)) { local.logs[d] = r; changed = true; }
+  }
+  if ((remote.cfgAt || 0) > (local.cfgAt || 0)) {
+    for (const k of ['profile', 'levels', 'phases', 'consults', 'goals', 'timeline', 'report', 'xrays']) if (remote[k]) local[k] = remote[k];
+    local.cfgAt = remote.cfgAt; changed = true;
+  }
+  local.updatedAt = Math.max(local.updatedAt || 0, remote.updatedAt || 0);
+  return changed;
+}
+function importData(o) {
+  if (!o || !o.logs) throw new Error('bad');
+  let n = 0;
+  for (const [d, r] of Object.entries(o.logs)) { const l = D.logs[d]; if (!l || (r.updatedAt || 0) > (l.updatedAt || 0)) { D.logs[d] = r; n++; } }
+  if (o.profile?.nextConsult && !D.profile.nextConsult) D.profile.nextConsult = o.profile.nextConsult;
+  if (Array.isArray(o.consults)) for (const c of o.consults) if (!D.consults.some(x => x.date === c.date && x.title === c.title)) D.consults.push(c);
+  return n;
+}
+function persist() { ls.set(STORE, JSON.stringify(D)); }
+const cloudOn = () => MODE === 'claude' ? !!CAP.artifact : Sync.enabled();
+function markDirty(kind) {
+  D.updatedAt = Date.now(); if (kind === 'cfg') D.cfgAt = Date.now();
+  persist(); dirty = cloudOn(); saveState();
+  if (dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 4000); }
+}
+const Sync = {
+  secrets() { try { return JSON.parse(ls.get(SKEY)) || {}; } catch { return {}; } },
+  setSecrets(s) { ls.set(SKEY, JSON.stringify(s)); },
+  enabled() { const s = this.secrets(); return !!(s.on && s.token); },
+  async api(path, opt = {}, auth = true) {
+    const s = this.secrets();
+    const res = await fetch('https://api.github.com' + path, { ...opt, cache: 'no-store',
+      headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(auth ? { Authorization: 'Bearer ' + s.token } : {}), ...(opt.body ? { 'Content-Type': 'application/json' } : {}) } });
+    if (!res.ok) throw new Error({ 401: 'التوكن غير صحيح أو منتهي', 403: 'التوكن ما عنده صلاحية gist', 404: 'الـ Gist غير موجود' }[res.status] || ('HTTP ' + res.status));
+    return res.json();
+  },
+  async read(j) { const f = j.files?.[GFILE]; if (!f) return null; return JSON.parse(f.truncated ? await (await fetch(f.raw_url, { cache: 'no-store' })).text() : f.content); }
+};
+async function saveCloud(rerender) {
+  if (!EDIT || saving) return;
+  if (MODE === 'claude') {
+    if (!CAP.artifact || !dirty) return;
+    saving = true; saveState();
+    try { await CAP.artifact.publish({ 'data.json': { content: JSON.stringify(D), contentType: 'application/json' } }); dirty = false; toastIfManual(); }
+    catch (e) {
+      if (['not_writer', 'not_granted', 'capability_disabled', 'consent_required'].includes(e?.code)) { CAP.artifact = null; dirty = false; toast('الحفظ بالسحابة غير متاح هنا. تغييراتك محفوظة على هذا الجهاز.'); }
+      else if (e?.code === 'rate_limited') { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 20000); }
+      else if (e?.code !== 'conflict') { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 8000 + Math.random() * 4000); }
+    } finally { saving = false; saveState(); }
+    return;
+  }
+  if (!Sync.enabled()) return;
+  saving = true; saveState();
+  try {
+    const s = Sync.secrets();
+    if (!s.gistId) {
+      const j = await Sync.api('/gists', { method: 'POST', body: JSON.stringify({ description: 'Rukba — rehab data (private)', public: false, files: { [GFILE]: { content: JSON.stringify(D) } } }) });
+      Sync.setSecrets({ ...s, gistId: j.id });
+    } else {
+      const remote = await Sync.read(await Sync.api('/gists/' + s.gistId));
+      if (remote && mergeInto(D, remote)) { persist(); if (rerender) render(); }
+      await Sync.api('/gists/' + s.gistId, { method: 'PATCH', body: JSON.stringify({ files: { [GFILE]: { content: JSON.stringify(D) } } }) });
+    }
+    Sync.setSecrets({ ...Sync.secrets(), lastSync: Date.now() });
+    dirty = false; toastIfManual();
+  } catch (e) { manualSave = false; toast('فشل المزامنة: ' + e.message); clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 60000); }
+  finally { saving = false; saveState(); }
+}
+let manualSave = false; function toastIfManual() { if (manualSave) { toast(MODE === 'claude' ? 'حُفظ بالسحابة' : 'تمت المزامنة'); manualSave = false; } }
+function saveState() {
+  const el = $('#save'); if (!el) return;
+  el.hidden = !EDIT;
+  if (!cloudOn()) { el.className = 'badge'; el.innerHTML = '<span class="dot"></span> على هذا الجهاز'; }
+  else if (saving) { el.className = 'badge'; el.innerHTML = '<span class="dot"></span> جاري الحفظ'; }
+  else if (dirty) { el.className = 'badge warn'; el.innerHTML = '<span class="dot"></span> بانتظار الحفظ'; }
+  else { el.className = 'badge ok'; el.innerHTML = '<span class="dot"></span> محفوظ'; }
+}
+addEventListener('pagehide', () => { if (D && EDIT) persist(); });
+
+async function boot() {
+  DOC = new URLSearchParams(location.search).get('d');
+  try { D = await (await fetch('data.json', { cache: 'no-store' })).json(); }
+  catch (e) { $('#main').innerHTML = '<div class="skeleton">تعذر تحميل بيانات المتابعة. أعد فتح الصفحة.</div>'; return; }
+  D.cfgAt = D.cfgAt || 1;
+  route.tab = ls.get('rukba.tab') || 'home';
+  if (window.claude?.use) {                       // داخل Claude
+    MODE = 'claude'; EDIT = false;
+    const st = ls.get(STORE); let local = null; if (st) { try { local = JSON.parse(st); } catch {} }
+    setMode(); renderTabs(); render();
+    const [art, usr, smp, dl] = await Promise.all(['artifact', 'user', 'sample', 'downloads'].map(n => window.claude.use(n).catch(() => null)));
+    CAP.artifact = art; CAP.sample = smp; CAP.downloads = dl;
+    let canEdit = false; try { canEdit = usr ? await usr.canEdit() : false; } catch {}
+    EDIT = !!(art && canEdit);
+    if (EDIT && local && mergeInto(D, local)) dirty = true;
+    setMode(); renderTabs(); render();
+    if (EDIT && dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 1500); }
+    return;
+  }
+  if (DOC) {                                      // رابط الدكتور على GitHub
+    EDIT = false;
+    try { const r = await Sync.read(await Sync.api('/gists/' + encodeURIComponent(DOC), {}, false)); if (r) mergeInto(D, r); }
+    catch { toast('تعذر جلب آخر البيانات، المعروض نسخة سابقة'); }
+    route.tab = 'home'; setMode(); renderTabs(); render(); return;
+  }
+  const st = ls.get(STORE);
+  if (st) { try { mergeInto(D, JSON.parse(st)); } catch {} }
+  else { const o = ls.get(OLD); if (o) { try { const n = importData(JSON.parse(o)); D.cfgAt = Date.now(); if (n) setTimeout(() => toast(`انقلت ${n} يوم من النسخة القديمة`), 800); } catch {} } }
+  persist();
+  setMode(); renderTabs(); render();
+  if (Sync.enabled()) saveCloud(true);
+}
+function setMode() {
+  const m = $('#mode');
+  m.hidden = EDIT; m.className = 'badge path'; m.textContent = 'عرض التقدم';
+  saveState();
+}
+
+/* ================= منطق المتابعة ================= */
+const phasesSorted = () => [...D.phases].sort((a, b) => a.start < b.start ? -1 : 1);
+function phaseFor(date) { let ph = null; for (const p of phasesSorted()) if (p.start <= date && (!p.end || p.end >= date)) ph = p; return ph; }
+const curPhase = () => phaseFor(today()) || phasesSorted().at(-1);
+const activeEx = ph => ph ? ph.exercises.filter(e => e.active !== false) : [];
+/* نمط متناوب: يوم 1 / يوم 2 / راحة، ويتكرر */
+const SESSION_LABEL = { A: 'يوم 1', B: 'يوم 2', rest: 'راحة' };
+const SESSION_FULL = { A: 'يوم 1 — قوة الأرداف والحوض', B: 'يوم 2 — الرباعية والسيطرة', rest: 'يوم راحة (لا تمارين)' };
+function phaseSession(ph, date) {
+  if (!ph || !ph.schedule) return 'all';
+  const pat = (ph.schedule.pattern && ph.schedule.pattern.length) ? ph.schedule.pattern : ['A', 'B', 'rest'];
+  const off = Math.max(0, diffDays(ph.schedule.start || ph.start, date));
+  return pat[off % pat.length];
+}
+function phaseExFor(ph, date) {
+  if (!ph) return [];
+  const all = ph.exercises.filter(e => e.active !== false);
+  if (!ph.schedule) return all;
+  const role = phaseSession(ph, date);
+  if (role === 'rest') return [];
+  return all.filter(e => !e.session || e.session === role);
+}
+function hasSchedule(ph) { return !!(ph && ph.schedule); }
+const hasAny = l => ['steps', 'weight', 'sleep', 'painDuring', 'painMorning', 'notes', 'flexion'].some(k => l[k] != null && l[k] !== '');
+function dayStats(date) {
+  const log = D.logs[date], ph = phaseFor(date), exs = phaseExFor(ph, date);
+  const rest = !!(ph && ph.schedule && phaseSession(ph, date) === 'rest');
+  let done = 0, skipped = 0, rec = 0; const exP = [];
+  if (log?.ex) for (const e of (ph ? activeEx(ph) : [])) { const v = log.ex[e.id]; if (!v) continue; if (v.d === true) { done++; rec++; } else if (v.d === false) { skipped++; rec++; } if (v.p != null) exP.push(v.p); }
+  const planned = exs.length, pct = planned ? done / planned : null;
+  let session = 'nodata';
+  if (rest) session = 'rest';
+  else if (log) session = done === 0 ? 'none' : (pct >= .999 ? 'full' : 'partial');
+  if (!rest && log && !rec && !hasAny(log)) session = 'nodata';
+  const pains = [log?.painDuring, ...exP].filter(x => x != null);
+  return { date, log, ph, rest, planned, done, skipped, pct, session, painMax: pains.length ? Math.max(...pains) : null, painMorning: log?.painMorning ?? null, limit: ph ? ph.painLimit : 0 };
+}
+const painCls = (v, lim = 0) => v == null ? '' : v <= lim ? 'ok' : v <= lim + 2 ? 'warn' : 'bad';
+const painCol = (v, lim) => ({ ok: 'var(--ok)', warn: 'var(--warn)', bad: 'var(--bad)' }[painCls(v, lim)] || 'var(--muted)');
+const series = k => Object.values(D.logs).filter(l => l[k] != null).sort((a, b) => a.date < b.date ? -1 : 1).map(l => ({ x: l.date, y: l[k] }));
+const curWeight = () => series('weight').at(-1)?.y ?? D.profile.startWeight;
+const curFlex = () => series('flexion').at(-1)?.y ?? D.profile.flexionNow;
+function lastConsult(d = today()) { return [...D.consults].filter(c => c.date <= d).sort((a, b) => a.date < b.date ? 1 : -1)[0]; }
+function cycle(d = today()) {
+  const base = lastConsult(d)?.date || D.profile.startDate;
+  const n = Math.max(0, Math.floor(diffDays(base, d) / 14)); const start = addDays(base, n * 14);
+  let end = addDays(start, 13); const nc = D.profile.nextConsult; if (nc && nc > d && nc <= addDays(start, 27)) end = addDays(nc, -1);
+  return { start, end, day: diffDays(start, d) + 1, len: diffDays(start, end) + 1, index: n + 1 };
+}
+function windowStats(days) {
+  const st = days.map(dayStats), logged = st.filter(s => s.session !== 'nodata' && s.session !== 'rest');
+  const plan = sum(logged.map(s => s.planned)), done = sum(logged.map(s => s.done));
+  return { st, logged, adh: plan ? done / plan : null, steps: avg(st.map(s => s.log?.steps ?? null)), painMax: Math.max(-1, ...st.map(s => s.painMax ?? -1)), over: st.filter(s => (s.painMax ?? -1) > s.limit || (s.painMorning ?? -1) > s.limit).length };
+}
+function painFreeStreak() {
+  let n = 0;
+  for (let d = today(); ; d = addDays(d, -1)) {
+    const s = dayStats(d); if (!s.log) { if (d === today()) continue; break; }
+    const p = Math.max(s.painMax ?? 0, s.painMorning ?? 0); if (p > 0) break; n++; if (n > 400) break;
+  }
+  return n;
+}
+function goalProgress(g) {
+  const t = today(), last7 = windowStats(range(addDays(t, -6), t)), last14 = windowStats(range(addDays(t, -13), t));
+  switch (g.metric) {
+    case 'painFree14': { const v = painFreeStreak(); return { v, label: `${v} يوم`, p: Math.min(1, v / g.target) }; }
+    case 'steps7': { const v = last7.steps; return { v, label: fmt(v), p: v ? Math.min(1, v / g.target) : 0 }; }
+    case 'adherence14': { const v = last14.adh == null ? null : r0(last14.adh * 100); return { v, label: v == null ? '—' : v + '%', p: v ? Math.min(1, v / g.target) : 0 }; }
+    case 'weight': { const v = curWeight(), s = D.profile.startWeight; return { v, label: fmt(v, 1) + ' كغم', p: Math.max(0, Math.min(1, (s - v) / (s - g.target))) }; }
+    case 'flexion': { const v = curFlex(); return { v, label: v + '°', p: Math.max(0, Math.min(1, (v - 90) / (g.target - 90))) }; }
+    default: return { v: g.done ? 1 : 0, label: g.done ? 'تحقق' : 'لم يتحقق بعد', p: g.done ? 1 : 0 };
+  }
+}
+function levelStatus(L) {
+  const ph = curPhase(); const idx = D.levels.findIndex(x => x.id === L.id); const cur = D.levels.findIndex(x => x.id === ph?.level);
+  return idx < cur ? 'done' : idx === cur ? 'now' : 'next';
+}
+
+/* ================= الرسوم البيانية ================= */
+const CH = {};
+function niceTicks(lo, hi, n) { const span = hi - lo || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw))); const st = [1, 2, 5, 10].map(s => s * mag).find(s => span / s <= n) || 10 * mag; const a = Math.floor(lo / st) * st, o = []; for (let v = a; v <= hi + st * .001; v += st) o.push(+v.toFixed(6)); if (o.at(-1) < hi) o.push(o.at(-1) + st); return o; }
+function chart(o) {
+  const id = uid('c'), W = o.w || 620, H = o.h || 200, pl = 40, pr = 10, pt = 12, pb = 24, data = o.data, n = data.length;
+  const vals = data.flatMap(d => (o.series || [{ key: 'y' }]).map(s => d[s.key])).filter(v => v != null), refs = o.refs || [];
+  let lo = o.yMin ?? Math.min(...vals, ...refs.map(r => r.y)), hi = o.yMax ?? Math.max(...vals, ...refs.map(r => r.y));
+  if (!vals.length) { lo = o.yMin ?? 0; hi = o.yMax ?? Math.max(10, ...refs.map(r => r.y * 1.2)); }
+  if (hi === lo) { hi += 1; lo -= 1; } if (o.type === 'bar' && o.yMin == null) lo = 0; else if (o.yMin == null) { const p = (hi - lo) * .12; lo -= p; hi += p; }
+  const ticks = o.ticks || niceTicks(lo, hi, 4); lo = Math.min(lo, ticks[0]); hi = Math.max(hi, ticks.at(-1));
+  const iw = W - pl - pr, ih = H - pt - pb, bw = n ? iw / n : iw;
+  const X = i => o.type === 'bar' ? pl + bw * i + bw / 2 : pl + (n <= 1 ? iw / 2 : iw * i / (n - 1)), Y = v => pt + ih - (v - lo) / (hi - lo) * ih;
+  let g = ''; for (const t of ticks) g += `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${Y(t)}" y2="${Y(t)}"/><text class="ax" x="${pl - 6}" y="${Y(t) + 4}" text-anchor="end">${fmt(t)}</text>`;
+  const step = Math.max(1, Math.ceil(n / (o.xt || 7))); for (let i = 0; i < n; i += step) g += `<text class="ax" x="${X(i)}" y="${H - 5}" text-anchor="middle">${fS(data[i].x)}</text>`;
+  let m = '';
+  if (o.type === 'bar') { const w = Math.min(22, Math.max(2, bw - 3)); data.forEach((d, i) => { if (d.y == null) return; const y0 = Y(Math.max(lo, 0)), y1 = Y(d.y), h = Math.max(1, y0 - y1), x = X(i) - w / 2, rr = Math.min(4, w / 2, h); m += `<path d="M${x},${y0}V${y1 + rr}Q${x},${y1} ${x + rr},${y1}H${x + w - rr}Q${x + w},${y1} ${x + w},${y1 + rr}V${y0}Z" fill="${d.c || o.color || 'var(--series-1)'}"/>`; }); }
+  else (o.series || [{ key: 'y', color: o.color || 'var(--series-1)' }]).forEach(s => { let p = '', pen = false; const dots = []; data.forEach((d, i) => { const v = d[s.key]; if (v == null) { if (!o.connect) pen = false; return; } p += (pen ? 'L' : 'M') + X(i).toFixed(1) + ',' + Y(v).toFixed(1); pen = true; dots.push([X(i), Y(v), d[s.key + 'c']]); }); if (s.area && dots.length) m += `<path d="${p}L${dots.at(-1)[0]},${pt + ih}L${dots[0][0]},${pt + ih}Z" fill="${s.color}" opacity=".1"/>`; m += `<path d="${p}" fill="none" stroke="${s.color}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`; (dots.length <= 40 ? dots : dots.slice(-1)).forEach(([x, y, c]) => m += `<circle cx="${x}" cy="${y}" r="3.8" fill="${c || s.color}" stroke="var(--surface)" stroke-width="2"/>`); });
+  let rl = ''; for (const r of refs) rl += `<line x1="${pl}" x2="${W - pr}" y1="${Y(r.y)}" y2="${Y(r.y)}" stroke="${r.color || 'var(--ink-2)'}" stroke-width="1.4" stroke-dasharray="5 4"/><text class="ax" x="${W - pr}" y="${Y(r.y) - 4}" text-anchor="end" style="fill:var(--ink-2);font-weight:600">${esc(r.label)}</text>`;
+  CH[id] = { data, X: data.map((_, i) => X(i)), W, tip: o.tip };
+  return `<div class="chart" id="${id}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label || '')}">${g}${m}${rl}<line class="hv" x1="0" x2="0" y1="${pt}" y2="${pt + ih}" stroke="var(--ink-2)" opacity="0"/></svg><div class="tip"></div></div>`;
+}
+function bindCharts(root) {
+  $$('.chart', root).forEach(el => { const c = CH[el.id]; if (!c || el.dataset.b) return; el.dataset.b = 1; const svg = $('svg', el), tip = $('.tip', el), hv = $('.hv', el);
+    const mv = e => { const r = svg.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * c.W; let bi = 0, bd = 1e9; c.X.forEach((p, i) => { const d = Math.abs(p - x); if (d < bd) { bd = d; bi = i; } }); const d = c.data[bi]; tip.innerHTML = c.tip ? c.tip(d) : `${fD(d.x)}: ${fmt(d.y, 1)}`; const px = c.X[bi] / c.W * r.width; tip.style.left = Math.min(Math.max(px, 60), r.width - 60) + 'px'; tip.classList.add('show'); hv.setAttribute('x1', c.X[bi]); hv.setAttribute('x2', c.X[bi]); hv.setAttribute('opacity', .4); };
+    svg.addEventListener('pointermove', mv); svg.addEventListener('pointerdown', mv); svg.addEventListener('pointerleave', () => { tip.classList.remove('show'); hv.setAttribute('opacity', 0); }); });
+}
+
+/* ================= التنقل ================= */
+const IC = {
+  home: '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/>',
+  today: '<rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M8.5 13.5l2.5 2.5 4.5-5"/>',
+  plan: '<path d="M4 20h5v-5h5v-5h5V4"/><circle cx="4" cy="20" r="1.4"/><circle cx="19" cy="4" r="1.4"/>',
+  log: '<path d="M3 20h18M6.5 20v-7M11 20V6M15.5 20v-9M20 20v-4"/>',
+  injury: '<path d="M8 3c.6 4.5 1.3 7 4 9.5"/><ellipse cx="13" cy="14.3" rx="2.6" ry="3.1"/><path d="M13.6 17.5c.3 1.6.9 2.6 2.4 3.5"/>',
+  reports: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 9 11"/>',
+  gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'
+};
+const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+const TABS = [['home', 'الرئيسية'], ['today', 'اليوم', true], ['plan', 'الخطة'], ['log', 'السجل'], ['injury', 'الإصابة'], ['reports', 'التقارير']];
+function route(tab, arg) { route.tab = tab; route.arg = arg; ls.set('rukba.tab', tab); renderTabs(); render(); scrollTo(0, 0); }
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.filter(t => !t[2] || EDIT).map(([k, l]) => `<button data-tab="${k}" ${route.tab === k ? 'aria-current="page"' : ''}>${ico(k)}<span>${l}</span></button>`).join('');
+  $$('#tabs button').forEach(b => b.onclick = () => route(b.dataset.tab));
+  const g = $('#gear'); g.hidden = !EDIT; g.innerHTML = ico('gear'); g.toggleAttribute('aria-current', route.tab === 'settings'); g.onclick = () => route('settings');
+}
+function render() {
+  if (!D) return;
+  if (!VIEWS[route.tab]) route.tab = 'home';
+  if (!EDIT && (route.tab === 'today' || route.tab === 'settings' || route.tab === 'reports')) route.tab = 'home';
+  for (const k in CH) delete CH[k];
+  const main = $('#main'); const V = VIEWS[route.tab];
+  main.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
+  V.bind && V.bind(main, route.arg); bindCharts(main);
+  $$('[data-go]', main).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
+}
+function dialog(title, body, actions) {
+  const dl = document.createElement('dialog'); dl.innerHTML = `<div class="dh">${esc(title)}</div><div class="db">${body}</div><div class="df"></div>`;
+  dl._set = acts => { const f = $('.df', dl); f.innerHTML = ''; for (const a of acts) { const b = document.createElement('button'); b.className = 'btn ' + (a.cls || ''); b.textContent = a.label; b.onclick = async () => { b.disabled = true; let r; try { r = a.run ? await a.run(dl) : true; } finally { b.disabled = false; } if (r !== false) { dl.close(); dl.remove(); } }; f.append(b); } };
+  dl._set(actions);
+  document.body.append(dl); dl.showModal(); dl.addEventListener('cancel', () => setTimeout(() => dl.remove(), 50)); return dl;
+}
+const VIEWS = {};
+
+/* ================= Claude ================= */
+const AI = {
+  ok() { return !!(CAP.sample || Sync.secrets().apiKey); },
+  async text(prompt) {
+    if (CAP.sample) return (await CAP.sample(prompt, { modelTier: 'default' })).text;
+    const s = Sync.secrets(); if (!s.apiKey) { const e = new Error('no key'); e.code = 'not_granted'; throw e; }
+    const r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': s.apiKey, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+      body: JSON.stringify({ model: s.model || 'claude-sonnet-5-5', max_tokens: 4000, messages: [{ role: 'user', content: prompt }] }) });
+    if (!r.ok) { const e = new Error('HTTP ' + r.status); e.code = r.status === 401 ? 'bad_key' : r.status === 429 ? 'rate_limited' : 'http'; throw e; }
+    return (await r.json()).content.map(c => c.text || '').join('');
+  },
+  async json(prompt) {
+    if (CAP.sample) return CAP.sample.json(prompt, { modelTier: 'default' });
+    const t = await AI.text(prompt); const m = t.match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : t);
+  },
+  err(e) { return { not_granted: 'Claude غير مفعّل. فعّله من الإعدادات.', bad_key: 'مفتاح Claude غير صحيح.', rate_limited: 'طلبات كثيرة، انتظر دقيقة.' }[e?.code] || 'تعذر الاتصال بـ Claude.'; }
+};
+
+/* ================= الرئيسية ================= */
+const J_INFO = [
+  'كرة قدم، ومشي ساعة يومياً، وليك برس 360 باوند، ووزن 69 كغم.',
+  'بدا الألم، وظهر نتوء تحت الصابونة وقت الصلاة وصار يكبر.',
+  'ثلاث أجوبة: "ما بيك شي"، "خشونة"، وإبرة ورّمت الرجل.',
+  'تشرين الأول وقف حديد الرجل، تشرين الثاني الكرة، وشباط كل شي.',
+  'من الليلة التاسعة عشر صارت الصلاة على الكرسي، والثني ما يتجاوز 90°.',
+  '2 آب الرجل "تفلت"، 3 آب الأشعة، و10 آب بداية العلاج الحقيقي.'
+];
+function journeySVG() {
+  const W = 1000, H = 230;
+  const pts = [
+    { k: 'p', t: 'القمة', s: 'بداية 2025' }, { k: 'w', t: 'بداية الألم', s: 'أيار 2025' }, { k: 'w', t: 'ثلاث أطباء', s: '2025' }, { k: 'd', t: 'التوقف', s: 'شباط 2026' },
+    { k: 'key', t: 'الليلة 19', s: 'رمضان 2026' }, { k: 's', t: 'د. أصيل', s: '10 آب 2026' },
+    ...D.levels.map((L, i) => ({ k: 'L', t: L.name, s: 'المستوى ' + (i + 1), L }))
+  ];
+  const n = pts.length, x = i => 40 + i * (W - 80) / (n - 1);
+  const y = i => { const base = [70, 95, 125, 165, 190, 175][i]; if (base != null) return base; const j = i - 6; return 160 - j * 22; };
+  let d = `M${x(0)},${y(0)}`; for (let i = 1; i < n; i++) { const cx = (x(i - 1) + x(i)) / 2; d += ` C${cx},${y(i - 1)} ${cx},${y(i)} ${x(i)},${y(i)}`; }
+  const ph = curPhase(); const nowIdx = 6 + Math.max(0, D.levels.findIndex(L => L.id === ph?.level));
+  let dDone = `M${x(0)},${y(0)}`; for (let i = 1; i <= nowIdx; i++) { const cx = (x(i - 1) + x(i)) / 2; dDone += ` C${cx},${y(i - 1)} ${cx},${y(i)} ${x(i)},${y(i)}`; }
+  const col = p => ({ p: 'var(--ok)', w: 'var(--warn)', d: 'var(--bad)', key: 'var(--path)', s: 'var(--accent)' }[p.k] || 'var(--line)');
+  let marks = '';
+  pts.forEach((p, i) => {
+    const st = p.L ? levelStatus(p.L) : 'done';
+    const fill = p.L ? (st === 'done' ? 'var(--accent)' : st === 'now' ? 'var(--path)' : 'var(--surface)') : col(p);
+    const stroke = p.L && st === 'next' ? 'var(--muted)' : fill;
+    const up = i % 2 === 0; const ty = up ? y(i) - 18 : y(i) + 24;
+    marks += `<g class="jp" data-j="${i}" tabindex="0" role="button" aria-label="${esc(p.t)}">${i === nowIdx ? `<circle class="pulse" cx="${x(i)}" cy="${y(i)}" r="9" fill="var(--path)"/>` : ''}<circle class="hit" cx="${x(i)}" cy="${y(i)}" r="22" fill="transparent"/><circle class="m" cx="${x(i)}" cy="${y(i)}" r="${i === nowIdx ? 8 : 6}" fill="${fill}" stroke="${stroke}" stroke-width="2"/>
+      <text class="lbl b" x="${x(i)}" y="${ty}" text-anchor="middle">${esc(p.t)}</text><text class="lbl" x="${x(i)}" y="${ty + (up ? -14 : 14)}" text-anchor="middle">${esc(p.s)}</text></g>`;
+  });
+  marks += `<text class="lbl b" x="${x(n - 1)}" y="${y(n - 1) - 16}" text-anchor="middle" style="fill:var(--path)">← السجدة</text>`;
+  journeySVG.pts = pts;
+  return `<svg viewBox="0 0 ${W} ${H}" aria-label="الطريق من بداية الإصابة إلى السجدة"><path d="${d}" fill="none" stroke="var(--line)" stroke-width="5" stroke-dasharray="2 9" stroke-linecap="round"/><path class="jdone" d="${dDone}" pathLength="100" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round" opacity=".55"/>${marks}</svg>`;
+}
+function bindJourney(root) {
+  const box = $('#jr', root); if (!box) return; const tip = $('.jtip', box), wrap = $('.jwrap', box);
+  const now = $('.jp .pulse', box); if (now && wrap.scrollWidth > wrap.clientWidth) requestAnimationFrame(() => { const r = now.getBoundingClientRect(), w = wrap.getBoundingClientRect(); wrap.scrollLeft += r.left - w.left - w.width * .6; });
+  wrap.addEventListener('scroll', () => { tip.hidden = true; });
+  const show = g => {
+    const i = +g.dataset.j, p = journeySVG.pts[i]; let h;
+    if (p.L) { const st = levelStatus(p.L); h = `<b>${esc(p.t)}</b> <span class="badge ${st === 'done' ? 'ok' : st === 'now' ? 'path' : ''}">${st === 'done' ? 'تم' : st === 'now' ? 'الآن' : 'قادم'}</span><div>${esc(p.L.desc)}</div><div class="muted">${p.L.criteria.map(esc).join(' · ')}</div>`; }
+    else h = `<b>${esc(p.t)}</b> <span class="muted">${esc(p.s)}</span><div>${esc(J_INFO[i])}</div>`;
+    tip.innerHTML = h; tip.hidden = false;
+    const r = box.getBoundingClientRect(), c = $('.m', g).getBoundingClientRect();
+    const left = Math.min(Math.max(c.left + c.width / 2 - r.left, 130), r.width - 130);
+    tip.style.left = left + 'px'; tip.style.top = (c.top - r.top + (c.top - r.top > r.height / 2 ? -12 : c.height + 12)) + 'px';
+    tip.classList.toggle('up', c.top - r.top > r.height / 2);
+    $$('.jp', box).forEach(x => x.classList.toggle('on', x === g));
+  };
+  $$('.jp', box).forEach(g => {
+    g.addEventListener('pointerenter', () => show(g)); g.addEventListener('focus', () => show(g));
+    g.addEventListener('click', () => { const p = journeySVG.pts[+g.dataset.j]; if (p.L) { VIEWS.plan.lv = p.L.id; route('plan'); } else show(g); });
+  });
+  box.addEventListener('pointerleave', () => { tip.hidden = true; $$('.jp', box).forEach(x => x.classList.remove('on')); });
+}
+function gaugeSVG(v, goal) {
+  const cx = 130, cy = 130, R = 100, a = deg => { const r = (180 - deg * 1.125) * Math.PI / 180; return [cx + R * Math.cos(r), cy - R * Math.sin(r)]; };
+  const arc = (d0, d1, c, w, cls = '') => { const [x0, y0] = a(d0), [x1, y1] = a(d1); return `<path class="${cls}" pathLength="100" d="M${x0},${y0} A${R},${R} 0 0 1 ${x1},${y1}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`; };
+  const [gx, gy] = a(goal), vv = Math.min(160, v);
+  let ticks = ''; for (const t of [0, 45, 90, 135, 160]) { const [tx, ty] = a(t); ticks += `<text x="${cx + (tx - cx) * 1.16}" y="${cy + (ty - cy) * 1.16 + 4}" text-anchor="middle" font-size="11" fill="var(--muted)">${t}°</text>`; }
+  return `<svg viewBox="0 0 260 160" aria-label="زاوية ثني الركبة ${v} من ${goal}">${arc(0, 160, 'var(--accent-soft)', 14)}${arc(0, vv, 'var(--accent)', 14, 'garc')}
+    <g class="gmark"><title>هدف السجود ${goal}°</title><line x1="${cx}" y1="${cy}" x2="${gx}" y2="${gy}" stroke="var(--path)" stroke-width="2" stroke-dasharray="4 3"/><circle cx="${gx}" cy="${gy}" r="7" fill="var(--path)"/></g>
+    <g class="needle" style="--a:${vv * 1.125}deg"><line x1="${cx}" y1="${cy}" x2="${cx - R + 18}" y2="${cy}" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/></g><circle cx="${cx}" cy="${cy}" r="7" fill="var(--ink)"/>${ticks}
+    <text x="${cx}" y="${cy + 26}" text-anchor="middle" font-size="22" font-weight="700" fill="var(--ink)">${v}°</text></svg>`;
+}
+function ring(p, col) {
+  const R = 25, C = 2 * Math.PI * R, off = C * (1 - Math.max(0, Math.min(1, p)));
+  return `<svg viewBox="0 0 64 64" class="ring" aria-hidden="true"><circle cx="32" cy="32" r="${R}" stroke="var(--accent-soft)" stroke-width="7" fill="none"/><circle class="rg" cx="32" cy="32" r="${R}" stroke="${col}" stroke-width="7" fill="none" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" style="stroke-dashoffset:${off.toFixed(1)};--c:${C.toFixed(1)}" transform="rotate(-90 32 32)"/><text x="32" y="36.5" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">${r0(p * 100)}%</text></svg>`;
+}
+function goalCard(g) {
+  const pr = goalProgress(g), ok = pr.p >= 1, man = g.metric === 'manual', click = EDIT && man;
+  return `<${click ? 'button' : 'div'} class="goal hov ${ok ? 'ok' : ''}" ${click ? `data-gd="${g.id}" title="اضغط لما يتحقق"` : ''}>${ring(pr.p, ok ? 'var(--ok)' : man ? 'var(--path)' : 'var(--accent)')}<span class="gt">${esc(g.title)}</span><span class="gv">${esc(pr.label)}</span>${click ? `<span class="gx">${ok ? 'تحقق ✓' : 'اضغط لما يتحقق'}</span>` : ''}</${click ? 'button' : 'div'}>`;
+}
+VIEWS.home = {
+  html() {
+    const t = today(), p = D.profile, ph = curPhase(), cy = cycle(), L = D.levels.find(l => l.id === ph?.level), Li = D.levels.indexOf(L);
+    const wc = windowStats(range(cy.start, t < cy.end ? t : cy.end)), st = dayStats(t), fl = curFlex();
+    const daysIn = diffDays(p.startDate, t) + 1, goals = D.goals.filter(g => g.metric !== 'flexion'), done = goals.filter(g => goalProgress(g).p >= 1).length;
+    const tile = (l, v, sub, col, pc) => `<div class="tile hov"><span>${l}</span><b style="${col ? 'color:' + col : ''}">${v}</b>${sub ? `<small>${sub}</small>` : ''}${pc != null ? `<div class="meter"><i style="width:${Math.min(100, pc * 100)}%"></i></div>` : ''}</div>`;
+    return `
+    <div class="head"><div><h1>اليوم ${daysIn} من العلاج</h1><p>${esc(ph?.name || '')} · حد الألم <b class="num">${ph?.painLimit ?? 0}</b>/10</p></div>
+      ${EDIT ? `<button class="btn primary" data-go="today">سجّل اليوم</button>` : ''}</div>
+    <section class="card journey" id="jr"><div class="jwrap">${journeySVG()}</div><div class="jtip" hidden></div><p class="muted jhint">مرّر أو اضغط على أي نقطة. نقاط المستويات تفتح الخطة.</p></section>
+    <div class="grid home3">
+      <section class="card"><h2>المستوى ${Li + 1} من ${D.levels.length} <span class="badge path">الآن</span></h2>
+        <b class="lvname">${esc(L?.name || '')}</b><p class="sub" style="margin:2px 0 10px">${esc(L?.desc || '')}</p>
+        <div class="crit">${(L?.criteria || []).map(c => `<div class="hov">${esc(c)}</div>`).join('')}</div>
+        <div class="cyc"><div class="row" style="justify-content:space-between"><span class="muted">الدورة بين الاستشارتين</span><b class="num">${cy.day} من ${cy.len}</b></div><div class="meter"><i style="width:${Math.min(100, cy.day / cy.len * 100)}%"></i></div>
+          <div class="muted">التزام الدورة ${wc.adh == null ? '—' : r0(wc.adh * 100) + '%'}${p.nextConsult ? ` · الاستشارة القادمة ${fD(p.nextConsult)}` : ''}</div></div></section>
+      <section class="card gauge hov"><h2 style="align-self:stretch">زاوية الثني <span class="badge path">السجود ${p.flexionGoal}°</span></h2>${gaugeSVG(fl, p.flexionGoal)}
+        <p class="muted" style="text-align:center;margin:0">باقي <b class="num">${Math.max(0, p.flexionGoal - fl)}°</b> للسجدة${series('flexion').length ? '' : ' · سجّل القياس من صفحة اليوم'}</p></section>
+      <section class="card"><h2>اليوم ${EDIT ? `<button class="btn sm" data-go="today">فتح</button>` : ''}</h2>
+        <div class="tiles">${tile('التمارين', `${st.done}/${st.planned}`, '', st.planned && st.done === st.planned ? 'var(--ok)' : '', st.planned ? st.done / st.planned : 0)}
+          ${tile('الخطوات', fmt(st.log?.steps), 'من ' + fmt(ph?.stepTarget), '', (st.log?.steps || 0) / (ph?.stepTarget || 1))}
+          ${tile('ألم التمارين', st.painMax ?? '—', 'الحد ' + st.limit, painCol(st.painMax, st.limit))}
+          ${tile('ألم الصبح', st.painMorning ?? '—', 'الحد ' + st.limit, painCol(st.painMorning, st.limit))}</div></section>
+    </div>
+    <section class="card" style="margin-top:14px"><h2>الأهداف <span class="row"><span class="badge ${done ? 'ok' : ''}">${done} من ${goals.length}</span>${EDIT ? '<button class="btn sm" id="addG">+ هدف</button>' : ''}</span></h2>
+      <div class="goals">${goals.map(goalCard).join('')}</div></section>`;
+  },
+  bind(root) {
+    bindJourney(root);
+    $$('[data-gd]', root).forEach(c => c.onclick = () => { const g = D.goals.find(x => x.id === c.dataset.gd); g.done = !g.done; g.doneAt = g.done ? today() : null; markDirty('cfg'); render(); if (g.done) toast('مبروك! تحقق: ' + g.title); });
+    const ag = $('#addG', root); if (ag) ag.onclick = () => dialog('هدف جديد', `<label class="f">الهدف<input type="text" id="gT"></label><label class="f" style="margin-top:8px">النوع<select id="gM"><option value="manual">يدوي (أأشّر عليه لما يتحقق)</option><option value="steps7">معدل الخطوات</option><option value="weight">الوزن</option><option value="painFree14">أيام بدون ألم</option><option value="adherence14">الالتزام %</option></select></label><label class="f" style="margin-top:8px">القيمة المطلوبة<input type="number" id="gV" value="1"></label>`,
+      [{ label: 'إلغاء' }, { label: 'إضافة', cls: 'primary', run: dl => { const t = $('#gT', dl).value.trim(); if (!t) return false; D.goals.push({ id: uid('g'), title: t, metric: $('#gM', dl).value, target: num($('#gV', dl).value) || 1, done: false }); markDirty('cfg'); render(); } }]);
+  }
+};
+
+/* ================= اليوم ================= */
+VIEWS.today = {
+  html(arg) {
+    const d = arg || today(), log = D.logs[d] || { date: d, ex: {} }, ph = phaseFor(d), lim = ph?.painLimit ?? 0;
+    const exs = phaseExFor(ph, d), role = ph ? phaseSession(ph, d) : 'all', rest = role === 'rest';
+    const scale = (k, label, hint) => `<div style="margin-bottom:12px" data-scale="${k}"><div class="row" style="justify-content:space-between"><b style="font-size:14.5px">${label}</b><span class="num" data-val>${log[k] ?? '—'}</span></div>${hint ? `<div class="muted">${hint}</div>` : ''}<div class="scale">${Array.from({ length: 11 }, (_, i) => `<button type="button" data-v="${i}" aria-pressed="${log[k] === i}" style="${log[k] === i ? 'background:' + painCol(i, lim) : ''}">${i}</button>`).join('')}</div></div>`;
+    const sessBadge = ph && hasSchedule(ph) ? `<span class="badge ${rest ? '' : 'acc'}">${SESSION_FULL[role] || SESSION_LABEL[role] || ''}</span>` : `<span class="badge acc">${esc(ph?.name.split('—')[0] || 'بدون مرحلة')}</span>`;
+    const nextRole = ph && hasSchedule(ph) ? phaseSession(ph, addDays(d, 1)) : null;
+    return `
+    <div class="head"><div><h1>تسجيل اليوم</h1><p>${wd(d)} ${fD(d, { day: 'numeric', month: 'long', year: 'numeric' })}</p></div>
+      <div class="datebar"><button class="btn sm" data-d="${addDays(d, -1)}">السابق</button><input type="date" id="dPick" value="${d}"><button class="btn sm" data-d="${addDays(d, 1)}">التالي</button>${d !== today() ? `<button class="btn sm" data-d="${today()}">اليوم</button>` : ''}</div></div>
+    <div class="grid g2" style="align-items:start">
+      <section class="card"><h2>التمارين ${sessBadge}</h2>
+        ${rest ? `<div class="note" style="margin-bottom:10px"><b>يوم راحة.</b> العضلة والوتر يبنون وقت الراحة، مو وقت التمرين. امشِ بشكل عادي، وسجّل الخطوات والألم إذا حبيت. التمرين الجاي: <b>${SESSION_FULL[nextRole] || ''}</b>.</div>` : ''}
+        ${exs.length ? `<div class="row" style="margin-bottom:4px"><button class="btn sm" id="allDone">أنجزت الكل</button><span class="muted">ضغطة = تم · ضغطتين = ما سويته · ثلاث = بدون تسجيل</span></div>` : (rest ? '' : '<p class="muted">لا توجد مرحلة بهذا التاريخ.</p>')}
+        ${exs.map(e => { const v = log.ex?.[e.id] || {}; const s = v.d === true ? 'done' : v.d === false ? 'skip' : 'none'; return `<div class="ex-row" data-ex="${e.id}"><button class="chk" data-s="${s}" aria-label="${esc(e.name)}">${s === 'skip' ? '✕' : '✓'}</button>
+          <div><div class="ex-n">${esc(e.name)}</div><div class="ex-m"><span class="num">${esc(e.dose)}</span>${e.ar ? ' · ' + esc(e.ar) : ''}${e.video ? ` · <a href="${esc(e.video)}" target="_blank" rel="noopener">فيديو</a>` : ''}</div></div>
+          <select aria-label="ألم ${esc(e.name)}" style="width:86px;margin:0"><option value="">ألم —</option>${Array.from({ length: 11 }, (_, i) => `<option value="${i}" ${v.p === i ? 'selected' : ''}>ألم ${i}</option>`).join('')}</select></div>`; }).join('')}
+      </section>
+      <div class="stack">
+        <section class="card"><h2>الألم <span class="badge ${lim ? 'warn' : 'ok'}">الحد ${lim}/10</span></h2>
+          ${scale('painDuring', 'أعلى ألم أثناء أو بعد التمارين')}${scale('painMorning', 'ألم الصبح (أول خطوات)', 'أهم مؤشر: استجابة الوتر خلال 24 ساعة')}${scale('painDaily', 'ألم النشاط اليومي (درج، جلوس طويل)')}
+          <div id="pAlert"></div></section>
+        <section class="card"><h2>القياسات</h2><div class="grid g2">
+          <label class="f">الخطوات<input type="number" inputmode="numeric" id="steps" value="${log.steps ?? ''}"></label>
+          <label class="f">الوزن (كغم)<input type="number" step="0.1" inputmode="decimal" id="weight" value="${log.weight ?? ''}"></label>
+          <label class="f">النوم (ساعات)<input type="number" step="0.5" inputmode="decimal" id="sleep" value="${log.sleep ?? ''}"></label>
+          <label class="f">ثني الركبة (درجة)<input type="number" inputmode="numeric" id="flexion" value="${log.flexion ?? ''}" placeholder="اختياري"></label></div></section>
+        <section class="card"><h2>ملاحظات للدكتور</h2><textarea id="notes" placeholder="مكان الألم، تمرين صعب، إحساس جديد...">${esc(log.notes || '')}</textarea>
+          <label class="row" style="margin-top:8px"><input type="checkbox" id="flag" ${log.flag ? 'checked' : ''} style="width:20px;height:20px"> مهمة (تظهر مميزة بالتقرير)</label></section>
+      </div></div>`;
+  },
+  bind(root, arg) {
+    const d = arg || today(); const log = D.logs[d] ? D.logs[d] : (D.logs[d] = { date: d, ex: {} }); const ph = phaseFor(d), lim = ph?.painLimit ?? 0;
+    const commit = (re) => { log.updatedAt = Date.now(); markDirty(); if (re) { const y = scrollY; render(); scrollTo(0, y); } else alertP(); };
+    const alertP = () => { const m = []; if ((log.painDuring ?? -1) > lim) m.push(`ألم التمارين ${log.painDuring} فوق الحد ${lim}.`); if ((log.painMorning ?? -1) > lim) m.push(`ألم الصبح ${log.painMorning} فوق الحد: الوتر ما تحمّل حمل أمس.`); $('#pAlert').innerHTML = m.length ? `<div class="note bad">${m.join('<br>')} لا تزيد الحمل، وبلّغ الدكتور.</div>` : ''; };
+    alertP();
+    $$('[data-d]', root).forEach(b => b.onclick = () => route('today', b.dataset.d)); $('#dPick').onchange = e => e.target.value && route('today', e.target.value);
+    $$('.ex-row', root).forEach(r => { const id = r.dataset.ex;
+      $('.chk', r).onclick = () => { const v = log.ex[id] || { d: null, p: null }; v.d = v.d == null ? true : v.d === true ? false : null; log.ex[id] = v; commit(true); };
+      $('select', r).onchange = e => { const v = log.ex[id] || { d: null, p: null }; v.p = num(e.target.value); log.ex[id] = v; commit(); }; });
+    const ad = $('#allDone', root); if (ad) ad.onclick = () => { phaseExFor(ph, d).forEach(e => log.ex[e.id] = { ...(log.ex[e.id] || { p: null }), d: true }); commit(true); };
+    $$('[data-scale]', root).forEach(w => { const k = w.dataset.scale; $$('button', w).forEach(b => b.onclick = () => { const v = +b.dataset.v; log[k] = log[k] === v ? null : v; $$('button', w).forEach(x => { const on = +x.dataset.v === log[k]; x.setAttribute('aria-pressed', on); x.style.background = on ? painCol(+x.dataset.v, lim) : ''; }); $('[data-val]', w).textContent = log[k] ?? '—'; commit(); }); });
+    for (const k of ['steps', 'weight', 'sleep', 'flexion']) $('#' + k).onchange = e => { log[k] = num(e.target.value); commit(); };
+    let nt; $('#notes').oninput = e => { log.notes = e.target.value; clearTimeout(nt); nt = setTimeout(() => commit(), 600); };
+    $('#flag').onchange = e => { log.flag = e.target.checked; commit(); };
+  }
+};
+
+
+
+/* ================= السجل والتقارير ================= */
+function dayDetail(d) {
+  const s = dayStats(d);
+  return `<h2>${wd(d)} ${fD(d, { day: 'numeric', month: 'long' })} ${EDIT ? `<button class="btn sm" data-go="today" data-arg="${d}">تعديل</button>` : ''}${s.rest ? ' <span class="badge">يوم راحة</span>' : (s.ph && hasSchedule(s.ph) ? ` <span class="badge acc">${SESSION_LABEL[phaseSession(s.ph, d)] || ''}</span>` : '')}</h2>
+    ${s.ph ? `<div class="tiles">${[['التمارين', s.rest ? 'راحة' : `${s.done}/${s.planned}`], ['الخطوات', fmt(s.log?.steps)], ['ألم التمارين', s.painMax ?? '—', painCol(s.painMax, s.limit)], ['ألم الصبح', s.painMorning ?? '—', painCol(s.painMorning, s.limit)]].map(([l, v, c]) => `<div class="tile"><span>${l}</span><b style="${c ? 'color:' + c : ''}">${v}</b></div>`).join('')}</div>
+    ${!s.rest ? `<div class="exdots">${phaseExFor(s.ph, d).map(e => { const v = s.log?.ex?.[e.id]; return `<span class="xd ${v?.d === true ? 'y' : v?.d === false ? 'n' : ''}" title="${esc(e.name)}">${esc(e.short || e.name.slice(0, 3))}</span>`; }).join('')}</div>` : ''}` : '<p class="muted">قبل بداية العلاج.</p>'}
+    ${s.log?.notes ? `<p dir="auto" class="dnote">${esc(s.log.notes)}</p>` : '<p class="muted" style="margin:6px 0 0">لا توجد ملاحظات.</p>'}`;
+}
+function calHtml() {
+  const V = VIEWS.log, t = today(), months = [];
+  const first = phasesSorted()[0]?.start.slice(0, 7) || t.slice(0, 7); for (let m = first; m <= t.slice(0, 7);) { months.push(m); const [y, mm] = m.split('-').map(Number); m = mm === 12 ? `${y + 1}-01` : `${y}-${pad(mm + 1)}`; }
+  if (!months.includes(V.month)) V.month = months.at(-1);
+  const m0 = V.month, mi = months.indexOf(m0);
+  const [Y, M] = m0.split('-').map(Number), nd = new Date(Y, M, 0).getDate(), lead = (new Date(Y, M - 1, 1).getDay() + 1) % 7;
+  const cells = [...Array(lead).fill(null), ...Array.from({ length: nd }, (_, i) => `${m0}-${pad(i + 1)}`)];
+  const ph = curPhase(), last30 = range(addDays(t, -29), t), ws = series('weight');
+  if (!V.day) V.day = t;
+  return `<div class="grid g2" style="align-items:start">
+    <section class="card"><h2><span class="row" style="gap:4px"><button class="btn sm" data-mo="${months[mi + 1] || ''}" ${mi < months.length - 1 ? '' : 'disabled'} aria-label="الشهر التالي">›</button>${fMonth(m0)}<button class="btn sm" data-mo="${months[mi - 1] || ''}" ${mi > 0 ? '' : 'disabled'} aria-label="الشهر السابق">‹</button></span></h2>
+      <div class="cal">${['سبت', 'أحد', 'اثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة'].map(x => `<div class="dh">${x}</div>`).join('')}
+      ${cells.map(d => { if (!d) return '<div class="c empty"></div>'; const s = dayStats(d), pm = Math.max(s.painMax ?? -1, s.painMorning ?? -1), rest = s.session === 'rest'; return `<button class="c ${s.pct >= .5 ? 'full' : ''} ${rest ? 'rest' : ''} ${d === t ? 'today' : ''} ${d === V.day ? 'sel' : ''} ${d > t || !s.ph ? 'out' : ''}" data-day="${d}" aria-label="${fD(d)}${rest ? ' — راحة' : ''}" title="${rest ? 'يوم راحة' : ''}">${s.session !== 'nodata' && !rest ? `<div class="fill" style="height:${r0((s.pct || 0) * 100)}%"></div>` : ''}<span>${parse(d).getDate()}</span>${rest ? '<i style="background:var(--muted);border-radius:2px;width:9px;height:3px"></i>' : pm >= 0 ? `<i style="background:${painCol(pm, s.limit)}"></i>` : ''}</button>`; }).join('')}</div>
+      <div class="legend"><span><i style="background:var(--accent)"></i>إنجاز التمارين</span><span><i style="background:var(--ok);border-radius:50%"></i>ألم ضمن الحد</span><span><i style="background:var(--bad);border-radius:50%"></i>فوق الحد</span><span><i style="background:var(--muted);border-radius:2px;width:9px;height:3px"></i>يوم راحة</span></div></section>
+    <section class="card" id="dayDetail">${dayDetail(V.day)}</section></div>
+  <div class="grid g2" style="margin-top:14px">
+    <section class="card"><h2>الخطوات · 30 يوم</h2>${chart({ type: 'bar', data: last30.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), refs: [{ y: ph?.stepTarget || 7000, label: fmt(ph?.stepTarget || 7000) }], label: 'الخطوات', tip: d => d.y == null ? fD(d.x) + ': غير مسجل' : `${wd(d.x)} ${fD(d.x)}<br><b>${fmt(d.y)}</b> خطوة` })}</section>
+    <section class="card"><h2>الألم · 30 يوم <span class="legend" style="margin:0"><span><i style="background:var(--series-1)"></i>تمارين</span><span><i style="background:var(--series-2)"></i>صبح</span></span></h2>
+      ${chart({ type: 'line', data: last30.map(d => { const s = dayStats(d); return { x: d, y: s.painMax, m: s.painMorning }; }), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], refs: [{ y: ph?.painLimit ?? 0, label: 'الحد', color: 'var(--ok)' }], label: 'الألم', tip: d => `${fD(d.x)}<br>تمارين ${d.y ?? '—'} · صبح ${d.m ?? '—'}` })}</section>
+  </div>
+  <section class="card" style="margin-top:14px"><h2>الوزن <span class="badge">الهدف ${D.profile.goalWeight} كغم</span></h2>${ws.length > 1 ? chart({ type: 'line', h: 170, data: ws, series: [{ key: 'y', color: 'var(--series-3)', area: true }], connect: true, label: 'الوزن', tip: d => `${fD(d.x)}<br><b>${fmt(d.y, 1)}</b> كغم` }) : `<p class="muted" style="margin:0">${ws.length ? `آخر وزن ${fmt(ws[0].y, 1)} كغم. ` : ''}سجّل الوزن من صفحة اليوم حتى يطلع المنحنى.</p>`}</section>`;
+}
+VIEWS.log = {
+  sub: 'cal', month: null, day: null, from: null, to: null,
+  html() {
+    const V = VIEWS.log;
+    return `<div class="head"><div><h1>السجل</h1><p>مرّر على أي يوم حتى تشوف تفاصيله، أو روح لمركز التقارير للتصدير الشامل.</p></div>
+      <button class="btn" data-go="reports">مركز التقارير ←</button></div>
+    ${calHtml()}`;
+  },
+  bind(root) {
+    const V = VIEWS.log;
+    $$('[data-mo]', root).forEach(b => b.onclick = () => { if (b.dataset.mo) { V.month = b.dataset.mo; render(); } });
+    const box = $('#dayDetail', root);
+    const show = (d, pin) => { if (pin) V.day = d; box.innerHTML = dayDetail(d); $$('[data-go]', box).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg)); };
+    $$('[data-day]', root).forEach(b => {
+      b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') show(b.dataset.day); });
+      b.onclick = () => { $$('.cal .sel', root).forEach(x => x.classList.remove('sel')); b.classList.add('sel'); show(b.dataset.day, true); if (innerWidth < 620) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+    });
+    $('.cal', root).addEventListener('pointerleave', () => show(V.day));
+  }
+};
+
+/* ================= مركز التقارير ================= */
+VIEWS.reports = {
+  from: null, to: null, kind: 'consult', output: 'html', preview: true,
+  html() {
+    const V = VIEWS.reports;
+    if (!V.from) { V.from = lastConsult()?.date || D.profile.startDate; V.to = today(); }
+    const t = today();
+    const kinds = [
+      ['consult', 'تقرير الاستشارة', 'ملخص فترة بين استشارتين: التزام، ألم، خطوات، رسوم، وملاحظات. مناسب لإرساله للمعالج.'],
+      ['weekly', 'التقرير الأسبوعي', 'آخر 7 أيام بمقارنة مع الأسبوع اللي قبله: وش تحسن وش ثبّت.'],
+      ['progress', 'تقرير التقدم', 'مقارنة أول 14 يوم بآخر 14 يوم: الخطوات، الألم، الالتزام، والوزن.'],
+      ['journey', 'تقرير الرحلة الكامل', 'القصة من البداية، المستويات، الأهداف، الأشعة، والمراجع. التقرير النهائي عند التعافي.'],
+      ['injury', 'تقرير الإصابة', 'شرح الاعتلال، المراحل، الطبقات، والتمارين المرتبطة بكل بنية.'],
+      ['adherence', 'تقرير الالتزام', 'جدول التزام لكل تمرين على فترة تختارها، مع الأيام المتروكة.'],
+      ['goals', 'تقرير الأهداف', 'حالة كل هدف مع نسبة الإنجاز والأدلة.'],
+      ['raw', 'البيانات الخام', 'تصدير كل البيانات كملف JSON للنسخ الاحتياطي، أو CSV يفتح بالإكسل.']
+    ];
+    const k = kinds.find(x => x[0] === V.kind) || kinds[0];
+    return `
+    <div class="head"><div><h1>مركز التقارير</h1><p>كل شيء بمكان واحد: اختر الفترة والنوع، عاين، وبعدها صدّر HTML أو طباعة PDF أو بيانات خام.</p></div>
+      <span class="badge acc">${kinds.length} أنواع</span></div>
+    <section class="card" style="margin-bottom:14px">
+      <h2>1 · الفترة</h2>
+      <div class="row" style="align-items:end;gap:10px">
+        <label class="f">من<input type="date" id="rcF" value="${V.from}"></label>
+        <label class="f">إلى<input type="date" id="rcT" value="${V.to}"></label>
+        <div class="row" style="gap:4px">
+          <button class="btn sm" data-rc="${t.slice(0, 4)}-${t.slice(5, 7)}-01|${t}">هذا الشهر</button>
+          <button class="btn sm" data-rc="${addDays(t, -6)}|${t}">7 أيام</button>
+          <button class="btn sm" data-rc="${addDays(t, -29)}|${t}">30 يوم</button>
+          <button class="btn sm" data-rc="${D.profile.startDate}|${t}">من البداية</button>
+          <button class="btn sm" data-rc="${lastConsult()?.date || D.profile.startDate}|${t}">من آخر استشارة</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:10px;gap:14px">
+        <span class="muted">المدة: <b class="num">${Math.max(0, diffDays(V.from, V.to) + 1)}</b> يوم</span>
+        <span class="muted">الأيام المسجلة: <b class="num">${Object.keys(D.logs).filter(d => d >= V.from && d <= V.to).length}</b></span>
+      </div>
+    </section>
+    <section class="card" style="margin-bottom:14px">
+      <h2>2 · نوع التقرير</h2>
+      <div class="rptgrid">
+        ${kinds.map(([id, title, desc]) => `<button class="rptcard hov ${V.kind === id ? 'sel' : ''}" data-kind="${id}"><b>${title}</b><span>${desc}</span></button>`).join('')}
+      </div>
+    </section>
+    <section class="card" style="margin-bottom:14px">
+      <h2>3 · الخيارات والتصدير</h2>
+      <div class="row" style="gap:16px;flex-wrap:wrap;align-items:flex-start">
+        <div>
+          <div class="muted" style="margin-bottom:4px">الإخراج</div>
+          <div class="seg" id="rcOut" role="tablist">${[['html', 'ملف HTML'], ['json', 'JSON'], ['csv', 'CSV']].map(([o, l]) => `<button role="tab" data-out="${o}" aria-selected="${V.output === o}">${l}</button>`).join('')}</div>
+        </div>
+        <div>
+          <div class="muted" style="margin-bottom:4px">يعرض التقرير داخل الصفحة؟</div>
+          <div class="seg" id="rcPrev" role="tablist">${[['1', 'معاينة'], ['0', 'بدون معاينة']].map(([o, l]) => `<button role="tab" data-prev="${o}" aria-selected="${(V.preview ? '1' : '0') === o}">${l}</button>`).join('')}</div>
+        </div>
+        ${V.kind === 'consult' && EDIT && AI.ok() ? '<button class="btn ai" id="rcAI">✦ ملخص بـ Claude</button>' : ''}
+      </div>
+      ${V.kind === 'consult' && EDIT ? `<label class="f" style="margin-top:10px">أسئلة للدكتور (سطر لكل سؤال)<textarea id="rcQ" style="min-height:60px">${esc(D.report.questions || '')}</textarea></label>` : ''}
+      <div class="row" style="margin-top:12px">
+        <button class="btn primary" id="rcDownload">⤓ تنزيل التقرير</button>
+        <button class="btn" id="rcPrint">🖶 طباعة / PDF</button>
+        ${V.kind === 'raw' ? '<button class="btn" id="rcCsv">⤓ CSV للتمرين</button>' : ''}
+        <button class="btn ghost" id="rcPreview">↻ تحديث المعاينة</button>
+      </div>
+      <p class="muted" style="margin:8px 0 0">الطباعة تفتح نافذة المتصفح، واختر منها «حفظ كـ PDF». التنزيل يحفظ ملف HTML مستقل يفتح بأي متصفح ويشتغل بلا إنترنت.</p>
+    </section>
+    ${V.preview ? `<section class="card" id="rcPrevBox"><h2>4 · معاينة</h2><div id="rcRep">${reportFor(V.kind, V.from, V.to)}</div></section>` : ''}`;
+  },
+  bind(root) {
+    const V = VIEWS.reports;
+    $('#rcF', root).onchange = e => { V.from = e.target.value; render(); };
+    $('#rcT', root).onchange = e => { V.to = e.target.value; render(); };
+    $$('[data-rc]', root).forEach(b => b.onclick = () => { const [f, t] = b.dataset.rc.split('|'); V.from = f; V.to = t; render(); });
+    $$('[data-kind]', root).forEach(b => b.onclick = () => { V.kind = b.dataset.kind; render(); });
+    $$('[data-out]', root).forEach(b => b.onclick = () => { V.output = b.dataset.out; render(); });
+    $$('[data-prev]', root).forEach(b => b.onclick = () => { V.preview = b.dataset.prev === '1'; render(); });
+    const q = $('#rcQ', root); if (q) { let tm; q.oninput = e => { D.report.questions = e.target.value; clearTimeout(tm); tm = setTimeout(() => markDirty('cfg'), 800); }; }
+    const ai = $('#rcAI', root); if (ai) ai.onclick = async () => {
+      ai.disabled = true; ai.textContent = 'Claude يكتب…';
+      try {
+        const days = range(V.from, V.to).map(dayStats).filter(s => s.session !== 'nodata').map(s => ({ d: s.date, ex: `${s.done}/${s.planned}`, pain: s.painMax, am: s.painMorning, steps: s.log?.steps, note: (s.log?.notes || '').slice(0, 300) }));
+        const r = await AI.text(`اكتب ملخص سريري قصير ومهني (5–7 أسطر) لمعالج طبيعي، عن فترة تأهيل لاعتلال الوتر الرضفي، بالعربية الفصحى المبسطة. اعتمد على الأرقام فقط، ولا تشخص ولا تقترح تغيير بالخطة. اذكر الالتزام، والألم مقابل الحد (${curPhase()?.painLimit}/10)، واتجاه الخطوات، وأي ملاحظة مهمة من المريض. أرجع نص الملخص فقط. البيانات اليومية: ${JSON.stringify(days)}`);
+        D.report.summary = r.trim(); D.report.summaryFor = V.from + '|' + V.to; markDirty('cfg'); render();
+      } catch (e) { toast(AI.err(e)); ai.disabled = false; ai.textContent = '✦ ملخص بـ Claude'; }
+    };
+    $('#rcPreview', root).onclick = () => render();
+    const dl = $('#rcDownload', root); if (dl) dl.onclick = () => exportReport(V.kind, V.from, V.to, V.output);
+    const pr = $('#rcPrint', root); if (pr) pr.onclick = () => printReport(V.kind, V.from, V.to);
+    const cs = $('#rcCsv', root); if (cs) cs.onclick = () => exportCSV(V.from, V.to);
+  }
+};
+function reportFor(kind, from, to) {
+  switch (kind) {
+    case 'consult': return consultReport(from, to);
+    case 'weekly': return weeklyReport(from, to);
+    case 'progress': return progressReport(from, to);
+    case 'journey': return journeyReport();
+    case 'injury': return injuryReport();
+    case 'adherence': return adherenceReport(from, to);
+    case 'goals': return goalsReport();
+    case 'raw': return rawReport(from, to);
+    default: return consultReport(from, to);
+  }
+}
+async function exportReport(kind, from, to, output) {
+  if (!CAP.downloads) { toast('التنزيل غير متاح هنا'); return; }
+  const name = { consult: `rukba-consult-${from}_${to}`, weekly: `rukba-weekly-${to}`, progress: `rukba-progress-${to}`, journey: `rukba-journey-${today()}`, injury: `rukba-injury-${today()}`, adherence: `rukba-adherence-${from}_${to}`, goals: `rukba-goals-${today()}`, raw: `rukba-data-${today()}` }[kind] || `rukba-report-${today()}`;
+  let data, type;
+  if (output === 'json') { data = JSON.stringify(D, null, 1); type = 'application/json'; name += '.json'; }
+  else if (output === 'csv') { data = '\ufeff' + logsCSV(from, to); type = 'text/csv'; name += '.csv'; }
+  else { const titles = { consult: 'تقرير متابعة', weekly: 'التقرير الأسبوعي', progress: 'تقرير التقدم', journey: 'تقرير الرحلة', injury: 'تقرير الإصابة', adherence: 'تقرير الالتزام', goals: 'تقرير الأهداف', raw: 'البيانات الخام' }; data = standalone(reportFor(kind, from, to), titles[kind] || 'تقرير'); type = 'text/html'; name += '.html'; }
+  try { await CAP.downloads.save({ filename: name, data: new Blob([data], { type }) }); toast('صار التنزيل'); }
+  catch (e) { if (e?.code !== 'cancelled' && e?.code !== 'declined') toast('ما صار التنزيل'); }
+}
+function printReport(kind, from, to) {
+  const titles = { consult: 'تقرير متابعة', weekly: 'التقرير الأسبوعي', progress: 'تقرير التقدم', journey: 'تقرير الرحلة', injury: 'تقرير الإصابة', adherence: 'تقرير الالتزام', goals: 'تقرير الأهداف', raw: 'البيانات الخام' };
+  const html = standalone(reportFor(kind, from, to), titles[kind] || 'تقرير');
+  const w = window.open('', '_blank');
+  if (!w) { toast('المتصفح منع النافذة. اسمح بالنوافذ المنبثقة.'); return; }
+  w.document.write(html); w.document.close();
+  setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 400);
+}
+function logsCSV(from, to) {
+  const rows = [['date', 'weekday', 'phase', 'exercises_done', 'exercises_planned', 'adherence_pct', 'pain_exercise', 'pain_morning', 'pain_daily', 'steps', 'weight', 'sleep', 'flexion', 'notes']];
+  for (const d of range(from, to)) {
+    const s = dayStats(d), l = D.logs[d];
+    rows.push([d, wd(d), s.ph?.name?.split('—')[0]?.trim() || '', s.done, s.planned, s.planned ? r0(s.pct * 100) : '', s.painMax ?? '', s.painMorning ?? '', l?.painDaily ?? '', l?.steps ?? '', l?.weight ?? '', l?.sleep ?? '', l?.flexion ?? '', `"${String(l?.notes || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`]);
+  }
+  return rows.map(r => r.join(',')).join('\n');
+}
+function exportCSV(from, to) {
+  if (!CAP.downloads) { toast('التنزيل غير متاح هنا'); return; }
+  const text = '\ufeff' + logsCSV(from, to);
+  CAP.downloads.save({ filename: `rukba-logs-${from}_${to}.csv`, data: new Blob([text], { type: 'text/csv' }) }).then(() => toast('صار التنزيل')).catch(() => {});
+}
+function kpiBlock(items) { return `<div class="grid g4">${items.map(([l, v, d]) => kpi(l, v, d)).join('')}</div>`; }
+function weeklyReport(from, to) {
+  const t = to || today(), w1 = range(addDays(t, -6), t), w0 = range(addDays(t, -13), addDays(t, -7));
+  const a = windowStats(w1), b = windowStats(w0);
+  const delta = (x, y, unit, good) => { if (x == null || y == null) return ''; const dd = x - y; const col = (good === 'down' ? dd < 0 : dd > 0) ? 'var(--ok)' : dd === 0 ? 'var(--muted)' : 'var(--warn)'; return `<span class="badge" style="color:${col}">${dd > 0 ? '▲' : dd < 0 ? '▼' : '='} ${fmt(Math.abs(dd), 0)} ${unit}</span>`; };
+  const steps1 = avg(w1.map(d => D.logs[d]?.steps ?? null)), steps0 = avg(w0.map(d => D.logs[d]?.steps ?? null));
+  const notes = a.st.filter(s => s.log?.notes);
+  return `<div class="paper">
+    <div class="row" style="justify-content:space-between;align-items:start"><div><h1 style="font-size:20px">التقرير الأسبوعي</h1><div class="muted">${esc(D.profile.name)} · ${fD(w1[0], { day: 'numeric', month: 'short' })} — ${fD(t, { day: 'numeric', month: 'short', year: 'numeric' })}</div></div><div class="muted" style="text-align:end">${esc(curPhase()?.name?.split('—')[0] || '')}</div></div>
+    <h2>هذا الأسبوع مقابل اللي قبله</h2>${kpiBlock([
+      ['الالتزام', a.adh == null ? '—' : r0(a.adh * 100) + '%', b.adh == null ? '' : 'الأسبوع الماضي ' + r0(b.adh * 100) + '%'],
+      ['أيام مسجلة', `${a.logged.length}/7`, `الأسبوع الماضي ${b.logged.length}/7`],
+      ['معدل الخطوات', fmt(steps1), `${steps0 == null ? '' : 'الماضي ' + fmt(steps0)}`],
+      ['أعلى ألم', a.painMax < 0 ? '—' : a.painMax + '/10', `الحد ${curPhase()?.painLimit ?? 0} · فوق الحد ${a.over} يوم`]])}
+    <div class="row" style="margin-top:10px">${delta(steps1, steps0, 'خطوة', 'up')}${delta(a.adh == null ? null : a.adh * 100, b.adh == null ? null : b.adh * 100, '% التزام', 'up')}${delta(a.painMax < 0 ? null : a.painMax, b.painMax < 0 ? null : b.painMax, 'ألم', 'down')}</div>
+    <h2>الرسوم · آخر 7 أيام</h2><div class="grid g2">${chart({ type: 'bar', w: 460, h: 180, data: w1.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), refs: [{ y: curPhase()?.stepTarget || 7000, label: fmt(curPhase()?.stepTarget || 7000) }], tip: d => `${fD(d.x)}: ${fmt(d.y)}` })}${chart({ type: 'line', w: 460, h: 180, data: a.st.map(s => ({ x: s.date, y: s.painMax, m: s.painMorning })), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], refs: [{ y: curPhase()?.painLimit ?? 0, label: 'الحد', color: 'var(--ok)' }], tip: d => `${fD(d.x)}: ${d.y ?? '—'} / ${d.m ?? '—'}` })}</div>
+    <h2>ملاحظات الأسبوع</h2>${notes.length ? notes.map(s => `<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b style="font-size:13px;color:var(--accent)">${wd(s.date)} ${fS(s.date)}${s.log.flag ? ' · مهم' : ''}</b><p dir="auto" style="margin:2px 0 0;white-space:pre-wrap">${esc(s.log.notes)}</p></div>`).join('') : '<p class="muted">لا توجد.</p>'}
+  </div>`;
+}
+function progressReport(from, to) {
+  const p = D.profile, t = to || today();
+  const all = range(from || p.startDate, t);
+  const first14 = windowStats(all.slice(0, 14)), last14 = windowStats(all.slice(-14));
+  return `<div class="paper">
+    <h1 style="font-size:20px">تقرير التقدم</h1><div class="muted">${esc(p.name)} · ${fD(all[0])} — ${fD(t)} · ${esc(p.diagnosis)}</div>
+    <h2>قبل وبعد</h2>${kpiBlock([
+      ['أيام المتابعة', fmt(all.length), `منذ ${fD(p.startDate)}`],
+      ['الخطوات', `${fmt(first14.steps)} ← ${fmt(last14.steps)}`, 'أول 14 يوم مقابل آخر 14'],
+      ['الالتزام', last14.adh == null ? '—' : r0(last14.adh * 100) + '%', `أيام مسجلة ${last14.logged.length}`],
+      ['زاوية الثني', `${D.profile.flexionNow}° ← ${curFlex()}°`, `هدف السجود ${p.flexionGoal}°`]])}
+    <h2>المنحنيات</h2>${chart({ type: 'line', w: 900, h: 190, xt: 10, data: all.map(d => { const s = dayStats(d); return { x: d, y: s.painMax, m: s.painMorning }; }), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], tip: d => `${fD(d.x)}: ${d.y ?? '—'} / ${d.m ?? '—'}` })}
+    ${chart({ type: 'bar', w: 900, h: 190, xt: 10, data: all.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), tip: d => `${fD(d.x)}: ${fmt(d.y)}` })}
+    ${chart({ type: 'line', w: 900, h: 170, xt: 10, data: series('weight'), series: [{ key: 'y', color: 'var(--series-3)', area: true }], connect: true, tip: d => `${fD(d.x)}: ${fmt(d.y, 1)} كغم` })}
+  </div>`;
+}
+function adherenceReport(from, to) {
+  const days = range(from, to), w = windowStats(days);
+  const phs = [...new Map(w.st.filter(s => s.ph).map(s => [s.ph.id, s.ph])).values()];
+  const rows = [];
+  for (const P of phs) { const pd = w.st.filter(s => s.ph === P && s.session !== 'nodata'); for (const e of activeEx(P)) { let dn = 0, sk = 0; pd.forEach(s => { const v = s.log?.ex?.[e.id]?.d; if (v === true) dn++; if (v === false) sk++; }); rows.push({ P, e, dn, sk, n: pd.length, pct: pd.length ? dn / pd.length : 0 }); } }
+  const worst = rows.filter(r => r.n && r.pct < .6).sort((a, b) => a.pct - b.pct);
+  return `<div class="paper">
+    <h1 style="font-size:20px">تقرير الالتزام</h1><div class="muted">${esc(D.profile.name)} · ${fD(from)} — ${fD(to)} · ${w.logged.length} يوم مسجل من ${days.length}</div>
+    <h2>الإجمالي</h2>${kpiBlock([['الالتزام الكلي', w.adh == null ? '—' : r0(w.adh * 100) + '%', `${w.done}`], ['أيام كاملة', fmt(w.st.filter(s => s.session === 'full').length)], ['أيام جزئية', fmt(w.st.filter(s => s.session === 'partial').length)], ['أيام بلا تسجيل', fmt(days.length - w.logged.length)]])}
+    <h2>حسب التمرين</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">التمرين</th><th>الجرعة</th><th>منجز</th><th>متروك</th><th>النسبة</th></tr></thead><tbody>${rows.map(r => `<tr><td class="l" dir="ltr" style="text-align:right">${esc(r.e.name)}</td><td>${esc(r.e.dose)}</td><td>${r.dn}/${r.n}</td><td>${r.sk || '–'}</td><td style="color:${r.pct < .6 ? 'var(--warn)' : 'var(--ink)'}">${r.n ? r0(r.pct * 100) + '%' : '—'}</td></tr>`).join('')}</tbody></table></div>
+    ${worst.length ? `<h2>تمارين تحتاج انتباه</h2><ul>${worst.map(r => `<li><b dir="ltr">${esc(r.e.name)}</b> — التزام ${r0(r.pct * 100)}% (${r.dn}/${r.n})</li>`).join('')}</ul>` : '<p class="muted">كل التمارين بنسبة جيدة. استمر.</p>'}
+  </div>`;
+}
+function goalsReport() {
+  const goals = D.goals.filter(g => g.metric !== 'flexion');
+  const done = goals.filter(g => goalProgress(g).p >= 1);
+  return `<div class="paper">
+    <h1 style="font-size:20px">تقرير الأهداف</h1><div class="muted">${esc(D.profile.name)} · ${fD(today(), { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+    <h2>الملخص</h2>${kpiBlock([['أهداف محققة', `${done.length}/${goals.length}`, done.length ? 'ما شاء الله' : 'الطريق مستمر'], ['الزاوية الحالية', curFlex() + '°', `الهدف ${D.profile.flexionGoal}°`], ['الوزن الحالي', fmt(curWeight(), 1) + ' كغم', `الهدف ${D.profile.goalWeight}`], ['أيام بلا ألم', painFreeStreak() + ' يوم', 'متتالية']])}
+    <h2>حالة كل هدف</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">الهدف</th><th>الحالة</th><th>القيمة</th><th>الإنجاز</th></tr></thead><tbody>${goals.map(g => { const pr = goalProgress(g), ok = pr.p >= 1; return `<tr><td class="l">${esc(g.title)}</td><td><span class="badge ${ok ? 'ok' : ''}">${ok ? 'تحقق' : 'جارٍ'}</span></td><td>${esc(pr.label)}</td><td>${r0(pr.p * 100)}%</td></tr>`; }).join('')}</tbody></table></div>
+  </div>`;
+}
+function rawReport(from, to) {
+  const days = range(from, to).filter(d => D.logs[d]);
+  return `<div class="paper">
+    <h1 style="font-size:20px">البيانات الخام</h1><div class="muted">${fD(from)} — ${fD(to)} · ${days.length} يوم مسجل. صدّر JSON للنسخ الاحتياطي الكامل، أو CSV لفتحه بالإكسل.</div>
+    <h2>معاينة السجل</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">التاريخ</th><th>اليوم</th><th>تمارين</th><th>ألم</th><th>صبح</th><th>خطوات</th><th>وزن</th><th>نوم</th><th>ثني</th></tr></thead><tbody>${days.map(d => { const s = dayStats(d), l = D.logs[d]; return `<tr><td class="l">${d}</td><td>${wd(d)}</td><td>${s.done}/${s.planned}</td><td>${s.painMax ?? '–'}</td><td>${s.painMorning ?? '–'}</td><td>${l?.steps != null ? fmt(l.steps) : '–'}</td><td>${l?.weight != null ? fmt(l.weight, 1) : '–'}</td><td>${l?.sleep ?? '–'}</td><td>${l?.flexion ?? '–'}</td></tr>`; }).join('')}</tbody></table></div>
+    <h2>بنية البيانات</h2><p class="muted">الملف يحتوي: الملف الشخصي، المستويات، المراحل والتمارين، السجل اليومي، الأهداف، الاستشارات، والخط الزمني. صيغة v${D.v || 2}.</p>
+  </div>`;
+}
+function injuryReport() {
+  const p = D.profile;
+  const rows = STAGES.map((S, i) => `<div class="lv ${i === STAGES.length - 1 ? 'now' : i < 4 ? 'done' : 'next'}"><span class="n">${i + 1}</span><div><b>${esc(S.t)}</b> <span class="badge ${i === 4 ? 'path' : ''}">${esc(S.when)}</span><div class="sub" style="font-size:14px;margin:2px 0 6px">${esc(S.summary)}</div>
+    <div class="grid g2" style="gap:6px">
+      <div class="ab"><b>العظم</b><p>${esc(S.bone)}</p></div>
+      <div class="ab"><b>العضلة</b><p>${esc(S.muscle)}</p></div>
+      <div class="ab"><b>الوتر</b><p>${esc(S.tendon)}</p></div>
+      <div class="ab"><b>العصب والألم</b><p>${esc(S.nerve)}</p></div>
+      <div class="ab"><b>الحياة اليومية</b><p>${esc(S.body)}</p></div>
+      <div class="ab"><b>قدرة الوتر</b><p>${esc(S.load)}</p></div>
+    </div>
+    <div class="note" style="margin-top:6px">افعل: ${esc(S.do)}</div>
+    <div class="note warn" style="margin-top:4px">راقب: ${esc(S.watch)}</div></div></div>`).join('');
+  const exPhs = phasesSorted().filter(ph => activeEx(ph).length).reverse();
+  return `<div class="paper">
+    <h1 style="font-size:22px">تقرير الإصابة: اعتلال الوتر الرضفي</h1>
+    <div class="muted">${esc(p.name)} · ${esc(p.diagnosis)} · المعالج ${esc(p.therapist)} · ${fD(today(), { day: 'numeric', month: 'long', year: 'numeric' })}</div>
+    <h2>المراحل الست</h2>${rows}
+    <h2>التشريح ووظيفته</h2><div class="anat">${ANAT.map(a => `<div class="ab"><b>${esc(a.name)}</b><p dir="ltr" style="font-family:var(--f-body);color:var(--muted);font-size:12px">${esc(a.en)}</p><p>${esc(a.role)}</p></div>`).join('')}</div>
+    <h2>ربط التمارين بالبنية</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">التمرين</th><th>المرحلة</th><th>الجرعة</th><th class="l">الهدف</th></tr></thead><tbody>${exPhs.flatMap(ph => activeEx(ph).map(e => `<tr><td class="l" dir="ltr" style="text-align:right">${esc(e.name)}${e.session ? ` <span class="badge ${e.session === 'A' ? 'acc' : 'path'}">${SESSION_LABEL[e.session] || e.session}</span>` : ''}</td><td>${esc(ph.name.split('—')[0].trim())}</td><td>${esc(e.dose || '—')}</td><td class="l">${esc(e.goal || '—')}</td></tr>`)).join('')}</tbody></table></div>
+    <h2>الأعراض الشائعة</h2><ul>${SYMPTOMS.map(s => `<li><b>${esc(s.t)}:</b> ${esc(s.d)}</li>`).join('')}</ul>
+    <h2>المعجم</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">المصطلح</th><th class="l">الشرح</th></tr></thead><tbody>${GLOSS.map(([t, d]) => `<tr><td class="l"><b>${esc(t)}</b></td><td class="l">${esc(d)}</td></tr>`).join('')}</tbody></table></div>
+    <h2>أسئلة شائعة</h2>${FAQ.map(([q, a]) => `<details class="oldph" style="border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin-top:6px"><summary><b>${esc(q)}</b></summary><p class="sub" style="margin:4px 0 0">${esc(a)}</p></details>`).join('')}
+    <h2>الأشعة</h2><div class="xr grid g2">${D.xrays.map(x => `<figure style="margin:0"><img src="${esc(x.file)}" alt="${esc(x.caption)}"><figcaption>${esc(x.caption)}</figcaption></figure>`).join('')}</div>
+    <h2>المراجع العلمية</h2><ol class="refs">${REFS.map(([r, u]) => `<li>${esc(r)} <a href="${u}" target="_blank" rel="noopener">رابط</a></li>`).join('')}</ol>
+    <p class="muted" style="margin:0">التقرير تثقيفي مبني على نموذج الاستمرارية. الرسم توضيحي مبسط ومو صورة طبية. التشخيص والقرار من المعالج.</p>
+  </div>`;
+}
+
+/* ================= الخطة ================= */
+function exCard(ph, e) {
+  const src = e.howtoSource === 'doctor' ? '' : e.howtoSource === 'ai' ? 'رتّبها Claude: الفيديو وتعليمات الدكتور هي المرجع' : 'وصف عام: الفيديو وتعليمات الدكتور هي المرجع';
+  return `<article class="exc hov" data-x="${ph.id}|${e.id}">
+    <div class="row" style="justify-content:space-between;align-items:start"><div style="min-width:0"><b dir="ltr" class="exn">${esc(e.name)}</b>${e.ar ? `<div class="exar">${esc(e.ar)}</div>` : ''}</div><span class="row" style="gap:6px">${e.session ? `<span class="badge ${e.session === 'A' ? 'acc' : 'path'}">${SESSION_LABEL[e.session] || e.session}</span>` : ''}<span class="dose num ${e.doseSuggested ? 'sug' : ''}" ${e.doseSuggested ? 'title="جرعة مقترحة، أكّدها مع الدكتور"' : ''}>${esc(e.dose || '—')}${e.doseSuggested ? ' *' : ''}</span></span></div>
+    ${e.goal ? `<div class="muted">${esc(e.goal)}</div>` : ''}${e.muscle ? `<div class="row" style="margin-top:4px">${e.muscle.split(/[،,]/).map(m => `<span class="badge">${esc(m.trim())}</span>`).join('')}</div>` : ''}
+    ${e.howto?.length ? `<div class="exmore"><ol>${e.howto.map(s => `<li>${esc(s)}</li>`).join('')}</ol>${src ? `<div class="muted" style="font-size:12px">${src}</div>` : ''}</div>` : ''}
+    <div class="row" style="margin-top:8px">${e.howto?.length ? '<button class="btn sm" data-more>التفاصيل</button>' : ''}${e.video ? `<a class="btn sm" href="${esc(e.video)}" target="_blank" rel="noopener">▶ الفيديو</a>` : ''}${EDIT ? `<button class="btn sm ghost" data-eex="${ph.id}|${e.id}">تعديل</button>` : ''}</div></article>`;
+}
+function phaseBlock(ph, cur) {
+  const rot = hasSchedule(ph) ? `<div class="note path" style="margin-bottom:10px"><b>نمط متناوب:</b> ${(ph.schedule.pattern || ['A', 'B', 'rest']).map(r => r === 'rest' ? 'يوم راحة' : (SESSION_LABEL[r] || r)).join(' ← ')}، ويتكرر. بدأ ${fD(ph.schedule.start || ph.start)}.</div>` : '';
+  return `<div class="row" style="justify-content:space-between;margin-bottom:10px"><div class="row"><span class="badge">${fD(ph.start)} ← ${ph.end ? fD(ph.end) : 'مستمرة'}</span><span class="badge ${ph.painLimit ? 'warn' : 'ok'}">حد الألم ${ph.painLimit}</span><span class="badge">${fmt(ph.stepTarget)} خطوة</span></div>${EDIT ? `<button class="btn sm ghost" data-eph="${ph.id}">تعديل المرحلة</button>` : ''}</div>
+    ${ph.goal ? `<div class="note" style="margin-bottom:10px">${esc(ph.goal)}</div>` : ''}${rot}
+    <div class="exgrid">${ph.exercises.filter(e => e.active !== false).map(e => exCard(ph, e)).join('')}</div>${EDIT ? `<button class="btn sm" data-addx="${ph.id}" style="margin-top:10px">+ تمرين لهذي المرحلة</button>` : ''}`;
+}
+VIEWS.plan = {
+  lv: null,
+  html() {
+    const V = VIEWS.plan, cur = curPhase(), sel = D.levels.find(l => l.id === (V.lv || cur?.level)) || D.levels[0];
+    const selPh = phasesSorted().filter(p => p.level === sel.id), old = phasesSorted().filter(p => p !== cur).reverse(), ss = levelStatus(sel);
+    return `
+    <div class="head"><div><h1>الخطة</h1><p>برنامج د. أصيل بمستوياته. اضغط على أي مستوى.</p></div>
+      ${EDIT ? `<div class="row"><button class="btn primary" id="newPlan">+ خطة جديدة</button><button class="btn" id="addConsult">تسجيل استشارة</button></div>` : ''}</div>
+    <section class="card">
+      <div class="stepper">${D.levels.map((L, i) => `<button class="stp ${levelStatus(L)} ${L === sel ? 'sel' : ''}" data-lv="${L.id}"><span class="n">${levelStatus(L) === 'done' ? '✓' : i + 1}</span><span class="t">${esc(L.name)}</span></button>`).join('')}</div>
+      <div class="lvd" key="${sel.id}"><h2>${esc(sel.name)} <span class="row"><span class="muted ltr">${esc(sel.en)}</span><span class="badge ${ss === 'done' ? 'ok' : ss === 'now' ? 'path' : ''}">${ss === 'done' ? 'تم' : ss === 'now' ? 'الآن' : 'قادم'}</span></span></h2>
+        <p class="sub" style="margin:0 0 8px">${esc(sel.desc)}</p><div class="crit">${sel.criteria.map(c => `<div class="hov">${esc(c)}</div>`).join('')}</div>
+        ${selPh.length ? `<div class="muted" style="margin-top:8px">المراحل: ${selPh.map(p => `${esc(p.name.split('—')[0].trim())} (${fD(p.start)}${p.end ? ' ← ' + fD(p.end) : ''})`).join(' · ')}</div>` : `<div class="muted" style="margin-top:8px">${ss === 'next' ? 'تنحط خطته لما توصل له مع الدكتور.' : ''}</div>`}</div></section>
+    ${cur ? `<section class="card" style="margin-top:14px"><h2>${esc(cur.name)} <span class="badge path">الحالية</span></h2>${phaseBlock(cur)}</section>` : ''}
+    <div class="grid g2" style="margin-top:14px;align-items:start">
+      <section class="card"><h2>الاستشارات ${EDIT ? `<label class="row muted" style="gap:6px;font-size:13px">القادمة <input type="date" id="nextC" value="${D.profile.nextConsult || ''}" style="width:auto;margin:0;min-height:34px"></label>` : ''}</h2>
+        <div class="tl">${[...D.consults].sort((a, b) => a.date < b.date ? 1 : -1).map(c => `<div class="start hov"><b>${esc(c.title)}</b><small>${fD(c.date, { day: 'numeric', month: 'long', year: 'numeric' })}</small>${c.notes ? `<div class="sub" style="font-size:14px">${esc(c.notes)}</div>` : ''}</div>`).join('')}</div>
+        <p class="muted" style="margin:0">المعالج: ${esc(D.profile.therapist)} · <a href="${esc(D.profile.therapistSite)}" target="_blank" rel="noopener">${esc(D.profile.therapistSite.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a></p></section>
+      <section class="card"><h2>المراحل السابقة</h2>${old.length ? old.map(ph => `<details class="oldph"><summary><b>${esc(ph.name)}</b><span class="muted">${fD(ph.start)} ← ${ph.end ? fD(ph.end) : '—'} · ${ph.exercises.length} تمرين</span></summary>${phaseBlock(ph)}</details>`).join('') : '<p class="muted" style="margin:0">ماكو بعد.</p>'}</section>
+    </div>`;
+  },
+  bind(root) {
+    $$('[data-lv]', root).forEach(b => b.onclick = () => { VIEWS.plan.lv = b.dataset.lv; const y = scrollY; render(); scrollTo(0, y); });
+    $$('[data-more]', root).forEach(b => b.onclick = () => { const c = b.closest('.exc'); c.classList.toggle('open'); b.textContent = c.classList.contains('open') ? 'إخفاء' : 'التفاصيل'; });
+    if (!EDIT) return;
+    $('#nextC', root).onchange = e => { D.profile.nextConsult = e.target.value; markDirty('cfg'); toast('حُفظ موعد الاستشارة'); };
+    $('#addConsult', root).onclick = () => dialog('تسجيل استشارة', `<label class="f">التاريخ<input type="date" id="cD" value="${today()}"></label><label class="f" style="margin-top:8px">العنوان<input type="text" id="cT" value="استشارة مع د. أصيل"></label><label class="f" style="margin-top:8px">شنو تقرر<textarea id="cN"></textarea></label>`,
+      [{ label: 'إلغاء' }, { label: 'حفظ', cls: 'primary', run: dl => { D.consults.push({ id: uid('c'), date: $('#cD', dl).value, title: $('#cT', dl).value, notes: $('#cN', dl).value }); if (D.profile.nextConsult && D.profile.nextConsult <= $('#cD', dl).value) D.profile.nextConsult = ''; markDirty('cfg'); render(); } }]);
+    $('#newPlan', root).onclick = newPlanDialog;
+    $$('[data-eph]', root).forEach(b => b.onclick = () => { const ph = D.phases.find(p => p.id === b.dataset.eph);
+      dialog('تعديل المرحلة', `<label class="f">الاسم<input type="text" id="pN" value="${esc(ph.name)}"></label><div class="grid g2" style="margin-top:8px"><label class="f">البداية<input type="date" id="pS" value="${ph.start}"></label><label class="f">النهاية<input type="date" id="pE" value="${ph.end || ''}"></label><label class="f">حد الألم<input type="number" id="pL" value="${ph.painLimit}"></label><label class="f">هدف الخطوات<input type="number" id="pT" value="${ph.stepTarget}"></label></div><label class="f" style="margin-top:8px">المستوى<select id="pLv">${D.levels.map(L => `<option value="${L.id}" ${ph.level === L.id ? 'selected' : ''}>${esc(L.name)}</option>`).join('')}</select></label><label class="f" style="margin-top:8px">تعليمات عامة<textarea id="pG" style="min-height:60px">${esc(ph.goal || '')}</textarea></label>`,
+        [{ label: 'إلغاء' }, { label: 'حفظ', cls: 'primary', run: dl => { Object.assign(ph, { name: $('#pN', dl).value, start: $('#pS', dl).value, end: $('#pE', dl).value, painLimit: num($('#pL', dl).value) ?? 0, stepTarget: num($('#pT', dl).value) ?? ph.stepTarget, level: $('#pLv', dl).value, goal: $('#pG', dl).value }); markDirty('cfg'); render(); } }]); });
+    $$('[data-eex]', root).forEach(b => b.onclick = () => { const [pid, xid] = b.dataset.eex.split('|'); const ph = D.phases.find(p => p.id === pid); editExercise(ph, ph.exercises.find(x => x.id === xid)); });
+    $$('[data-addx]', root).forEach(b => b.onclick = () => editExercise(D.phases.find(p => p.id === b.dataset.addx)));
+  }
+};
+
+/* ---------- إدخال التمارين يدوياً: الاسم، الجلسات، العدد أو الثبات، الرابط، التفاصيل ---------- */
+const parseDose = d => { const m = String(d || '').match(/^\s*(\d+)\s*[x×X*]\s*(\d+)\s*(ث|ثانية|ثواني|s|sec)?\s*$/); return m ? { sets: +m[1], mode: m[3] ? 'hold' : 'reps', val: +m[2] } : null; };
+const doseOf = e => e.sets && e.val ? `${e.sets} × ${e.val}${e.mode === 'hold' ? ' ث' : ''}` : (e.dose || '');
+const shortOf = n => (n.replace(/[^A-Za-z0-9 ]/g, '').split(' ').filter(Boolean).map(w => w[0]).join('').toUpperCase().slice(0, 5)) || n.replace(/\s+/g, '').slice(0, 4);
+function exForm(e = {}, i = 0, withActive) {
+  const pd = e.sets ? e : (parseDose(e.dose) || {}), mode = pd.mode || 'reps';
+  return `<div class="exf" data-od="${esc(pd.sets ? '' : (e.dose || ''))}">
+    <div class="row" style="justify-content:space-between"><b class="exf-n">تمرين ${i + 1}</b>${withActive ? '' : '<button type="button" class="btn sm ghost danger" data-rm aria-label="حذف التمرين">✕</button>'}</div>
+    <label class="f">اسم التمرين<input type="text" data-k="name" dir="auto" value="${esc(e.name || '')}" placeholder="مثلاً: Spanish Squat"></label>
+    <div class="dosef">
+      <label class="f">الجلسات<input type="number" inputmode="numeric" min="1" data-k="sets" value="${pd.sets ?? ''}" placeholder="3"></label>
+      <div class="f">النوع<div class="seg sm" role="group">${[['reps', 'عدد'], ['hold', 'ثبات']].map(([k, l]) => `<button type="button" data-mode="${k}" aria-selected="${mode === k}">${l}</button>`).join('')}</div></div>
+      <label class="f"><span data-vl>${mode === 'hold' ? 'الثبات (ثانية)' : 'العدد'}</span><input type="number" inputmode="numeric" min="1" data-k="val" value="${pd.val ?? ''}" placeholder="${mode === 'hold' ? '45' : '10'}"></label>
+    </div>
+    ${!pd.sets && e.dose ? `<div class="muted">الجرعة المسجلة: <span class="num">${esc(e.dose)}</span>. تبقى إذا تركت الحقول فارغة.</div>` : ''}
+    <label class="f">الرابط<input type="url" data-k="video" dir="ltr" value="${esc(e.video || '')}" placeholder="https://"></label>
+    <label class="f">التفاصيل (كل سطر خطوة)<textarea data-k="details" dir="auto" style="min-height:70px" placeholder="طريقة الأداء، ملاحظات الدكتور…">${esc((e.howto || []).join('\n'))}</textarea></label>
+    ${withActive ? `<label class="row"><input type="checkbox" data-k="active" ${e.active !== false ? 'checked' : ''} style="width:20px;height:20px"> ضمن المتابعة اليومية</label>` : ''}
+  </div>`;
+}
+function bindExForm(c) {
+  $$('[data-mode]', c).forEach(b => b.onclick = () => { $$('[data-mode]', c).forEach(x => x.setAttribute('aria-selected', x === b)); const h = b.dataset.mode === 'hold'; $('[data-vl]', c).textContent = h ? 'الثبات (ثانية)' : 'العدد'; $('[data-k="val"]', c).placeholder = h ? '45' : '10'; });
+}
+function readExForm(c) {
+  const g = k => $(`[data-k="${k}"]`, c)?.value.trim() ?? '';
+  const e = { name: g('name'), sets: num(g('sets')), val: num(g('val')), mode: $('[data-mode][aria-selected="true"]', c)?.dataset.mode || 'reps', video: g('video'), howto: g('details').split('\n').map(s => s.trim()).filter(Boolean) };
+  e.dose = e.sets && e.val ? doseOf(e) : (c.dataset.od || '');
+  if (!(e.sets && e.val)) { e.sets = null; e.val = null; }
+  return e;
+}
+function newPlanDialog() {
+  const cur = curPhase();
+  const dl = dialog('خطة جديدة', `
+    <div class="grid g2">
+      <label class="f">اسم المرحلة<input type="text" id="npN" placeholder="المرحلة ${D.phases.length + 1}"></label>
+      <label class="f">تبدأ من<input type="date" id="npS" value="${today()}"></label>
+      <label class="f">المستوى<select id="npL">${D.levels.map(L => `<option value="${L.id}" ${levelStatus(L) === 'now' ? 'selected' : ''}>${esc(L.name)}</option>`).join('')}</select></label>
+      <div class="grid g2" style="gap:8px"><label class="f">حد الألم<input type="number" id="npP" value="${cur?.painLimit ?? 0}"></label><label class="f">الخطوات<input type="number" id="npT" value="${cur?.stepTarget ?? 7000}"></label></div>
+    </div>
+    <label class="f" style="margin-top:8px">ملاحظات الدكتور (اختياري)<textarea id="npNotes" dir="auto" style="min-height:56px"></textarea></label>
+    <div class="row" style="justify-content:space-between;margin-top:16px"><h3 style="font-size:16px">التمارين</h3>${cur ? '<button type="button" class="btn sm" id="npCopy">انسخ تمارين المرحلة الحالية</button>' : ''}</div>
+    <div id="npEx" class="stack" style="gap:10px;margin-top:8px"></div>
+    <button type="button" class="btn sm" id="npAdd" style="margin-top:10px">+ تمرين</button>`,
+    [{ label: 'إلغاء' }, { label: 'حفظ الخطة', cls: 'primary', run: dl => savePlan(dl) }]);
+  const box = $('#npEx', dl);
+  const renum = () => $$('.exf', box).forEach((c, i) => $('.exf-n', c).textContent = 'تمرين ' + (i + 1));
+  const add = e => { box.insertAdjacentHTML('beforeend', exForm(e, box.children.length)); const c = box.lastElementChild; bindExForm(c); $('[data-rm]', c).onclick = () => { c.remove(); renum(); }; return c; };
+  add();
+  $('#npAdd', dl).onclick = () => { const c = add(); c.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); $('[data-k="name"]', c).focus(); };
+  const cp = $('#npCopy', dl); if (cp) cp.onclick = () => { box.innerHTML = ''; activeEx(cur).forEach(e => add(e)); renum(); toast('انسخت، عدّل اللي تغيّر'); };
+}
+function newExercise(e) { return { id: uid('x'), name: e.name, short: shortOf(e.name), dose: e.dose, sets: e.sets, val: e.val, mode: e.mode, goal: '', video: e.video, howto: e.howto, howtoSource: e.howto.length ? 'doctor' : 'general', active: true }; }
+function savePlan(dl) {
+  const exs = $$('#npEx .exf', dl).map(readExForm).filter(e => e.name);
+  if (!exs.length) { toast('اكتب اسم تمرين واحد على الأقل'); return false; }
+  const start = $('#npS', dl).value || today(), level = $('#npL', dl).value, name = $('#npN', dl).value.trim() || `المرحلة ${D.phases.length + 1}`, notes = $('#npNotes', dl).value.trim();
+  const cur = curPhase(); if (cur && !cur.end && cur.start < start) cur.end = addDays(start, -1);
+  D.phases.push({ id: uid('p'), name, nameEn: '', start, end: '', painLimit: num($('#npP', dl).value) ?? 0, stepTarget: num($('#npT', dl).value) ?? 7000, goal: notes, level, exercises: exs.map(newExercise) });
+  D.consults.push({ id: uid('c'), date: start, title: 'خطة جديدة: ' + name, notes });
+  VIEWS.plan.lv = null; markDirty('cfg'); route('plan'); toast('حُفظت الخطة الجديدة');
+}
+function editExercise(ph, e) {
+  const dl = dialog(e ? 'تعديل التمرين' : 'تمرين جديد', exForm(e || {}, 0, true), [
+    ...(e ? [{ label: 'حذف', cls: 'danger', run: () => { const i = ph.exercises.indexOf(e); if (D.logs && Object.values(D.logs).some(l => l.ex?.[e.id])) e.active = false; else ph.exercises.splice(i, 1); markDirty('cfg'); render(); toast('انشال التمرين'); } }] : []),
+    { label: 'إلغاء' },
+    { label: 'حفظ', cls: 'primary', run: dl => { const c = $('.exf', dl), v = readExForm(c); if (!v.name) { toast('اكتب الاسم'); return false; }
+      const act = $('[data-k="active"]', c).checked;
+      if (e) { if ((v.howto || []).join() !== (e.howto || []).join()) e.howtoSource = v.howto.length ? 'doctor' : 'general'; Object.assign(e, { name: v.name, dose: v.dose, sets: v.sets, val: v.val, mode: v.mode, video: v.video, howto: v.howto, active: act, doseSuggested: false }); }
+      else ph.exercises.push({ ...newExercise(v), active: act });
+      markDirty('cfg'); render(); } }]);
+  $('.exf-n', dl).textContent = e ? e.name : 'تمرين جديد'; bindExForm($('.exf', dl));
+}
+
+/* ================= الإصابة: التمثيل التشريحي ================= */
+const STAGES = [
+  { t: 'سليم', when: 'قبل 2025', summary: 'وتر كامل القدرة يتحمل الحمل بلا ألم.', load: 'قدرة الوتر تساوي أو تفوق الحمل الواقع عليه.',
+    bone: 'الرضفة وحدبة الظنبوب طبيعية، والغضروف سليم.', muscle: 'الرباعية قوية ومتوازنة مع الفخذ الخلفي والألوية.',
+    tendon: 'ألياف كولاجين متوازية ومرتبة، وسماكة طبيعية، والتروية دموية منتظمة.', nerve: 'لا ألم. الإشارة العصبية للعضلة كاملة.',
+    body: 'لعب كرة، وحديد ليك برس 360 باوند، ومشي ساعة يومياً، ووزن 69 كغم.',
+    feel: 'لا شيء. الحركة والصلاة طبيعية.', do: 'حافظ على القوة والتدرج بالحمل، وسخّن قبل الرياضة.', watch: 'زيادة الحمل المفاجئة (مباريات متكررة + حديد ثقيل + مشي طويل بنفس الأسبوع).' },
+  { t: 'تفاعلي', when: 'بداية 2025', summary: 'تفاعل الوتر مع حمل فاق قدرته لحظياً، والألم يظهر ويتلاشى.', load: 'الحمل صار أعلى من قدرة الوتر الحالية مؤقتاً.',
+    bone: 'بدون تغيير عظمي.', muscle: 'تعب وتراجع أداء بعد الحمل العالي.',
+    tendon: 'انتفاخ وزيادة سماكة كرد فعل على حمل مفاجئ ومتكرر، والألياف ما زالت سليمة.', nerve: 'ألم مع الحمل يختفي بالراحة، بدون تحسس مركزي.',
+    body: 'ألم خفيف تحت الصابونة بعد اللعب، ويصفى بيوم أو يومين.',
+    feel: 'ألم بعد اللعب، مو أثناءه.', do: 'رتّح نسبي، قلّل الحمل العالي، وابدأ تمارين متدرجة قبل ما تتحول الحالة لمزمنة.', watch: 'الاستمرار بنفس الحمل بدون راحة → التحول للمرحلة التالية.' },
+  { t: 'خلل الترميم', when: 'أيار – تشرين 2025', summary: 'محاولة ترميم غير منظمة: ألياف غير مرتبة وأوعية دموية جديدة، وألم أكثر ثباتاً.', load: 'قدرة الوتر بدأت تنزل والحمل المتكرر يستمر.',
+    bone: 'تهيج عند منشأ الوتر على القطب السفلي للرضفة.', muscle: 'تثبيط للرباعية بسبب الألم، وبداية ضعف المتسعة الإنسية (VMO).',
+    tendon: 'ألياف متموجة وغير مرتبة، وأوعية دموية جديدة (نيوفاسكيولر)، مع زيادة التحسس.', nerve: 'نمو أعصاب صغيرة مع الأوعية يزيد الإحساس بالألم.',
+    body: 'ألم بالمشي واللعب، وبداية ظهور النتوء تحت الصابونة.',
+    feel: 'ألم أثناء الحركة، وتيبس بعد الجلوس.', do: 'إدارة الحمل: تمارين ثابتة لتسكين الألم، وتقوية الحوض (Glute) لتقليل حمل الركبة.', watch: 'تجاهل الألم والاستمرار بالرياضة → تنكسي وبناء عظمي.' },
+  { t: 'تنكسي وبناء عظمي', when: 'تشرين 2025 – آب 2026', summary: 'مناطق متغيرة بالوتر مع بناء عظمي عند المنشأ، وضمور بالعضلة، والوظيفة تنزل.', load: 'قدرة الوتر أقل بكثير من الحمل اليومي.',
+    bone: 'تآكل ثم بناء عظمي عند منشأ الوتر (يظهر بالأشعة الجانبية).', muscle: 'ضمور واضح بالمتسعة الإنسية، وزيادة وزن من 69 إلى 85 كغم.',
+    tendon: 'مناطق متغيرة البنية (ديسكولاجين)، ومحاطة بنسيج سليم كافي — هذه نقطة مهمة: النسيج السليم هو اللي نبني عليه.', nerve: 'ألم مع الثني العميق، والركبة ما تنثني أكثر من 90°.',
+    body: 'الصلاة على الكرسي، والرجل "تفلت" بآب 2026، وتوقف كل نشاط.',
+    feel: 'ألم شبه دائم، وثني محدود، وتيبس صباحي.', do: 'بداية برنامج التأهيل المتدرج مع د. أصيل: تسكين ← تقوية ← تحميل وظيفي.', watch: 'أي قفز للمراحل الأثقل قبل استحقاقها → انتكاسة.' },
+  { t: 'التأهيل: بناء القدرة', when: 'من 10 آب 2026', summary: 'نبني قدرة العضلة والوتر من جديد بتحميل تدريجي مضبوط.', load: 'قدرة الوتر ترتفع تدريجياً مع التحميل، وتلحق بالحمل اليومي.',
+    bone: 'البنية العظمية ما تتغير بسرعة، والهدف القدرة الوظيفية مو الصورة.', muscle: 'تقوية الحوض والرباعية والأرداف: العضلة تشيل حمل أكثر عن الوتر.',
+    tendon: 'تحميل تدريجي (ثابت ← ديناميكي) يحفز بناء كولاجين جديد ومرتب حول المنطقة المتغيرة.', nerve: 'التمارين الثابتة تخفف الألم وتقلل تثبيط العضلة (Rio 2015).',
+    body: 'الخطوات ترتفع تدريجياً، والألم ينزل لصفر، والحياة اليومية تتحسن.',
+    feel: 'ألم يقل، وثبات يزيد، وثقة بالركبة ترجع.', do: 'التزم بالخطة المتناوبة، وسجّل الألم، ولا تزيد الحمل إلا إذا استحققت.', watch: 'ألم صباحي مستمر، أو ألم يصعد فوق الحد خلال التمرين.' },
+  { t: 'الهدف: قدرة كاملة', when: 'المستقبل', summary: 'وتر وعضلة أقوى من قبل، وثني كامل، ورجوع للجري والملعب.', load: 'قدرة الوتر تفوق متطلبات الرياضة.',
+    bone: 'حتى لو بقي البناء العظمي، الوظيفة ترجع طبيعية.', muscle: 'رباعية وحوض أقوى من قبل الإصابة، وتوازن عضلي سليم.',
+    tendon: 'نسيج سليم أكبر يتحمل القفز والركض وتغيير الاتجاه.', nerve: 'لا ألم مع الحمل ولا بالصبح.',
+    body: 'السجدة بشكل طبيعي، ثم الملعب بدون خوف.',
+    feel: 'حرية كاملة بالحركة بلا ألم.', do: 'صيانة: تمارين قوة مستمرة، وتسخين، وتدرج بالحمل.', watch: 'الرجوع المفاجئ لكل شيء بنفس الوقت.' }
+];
+const STAGE_FIBERS = ['ألياف متوازية ومشدودة، وسماكة طبيعية.', 'الألياف سليمة لكن النسيج منتفخ بالماء (أدمة).', 'ألياف متموجة وغير مرتبة، وأوعية جديدة (أحمر).', 'تقطّع بالألياف ومناطق متغيرة، وأوعية دموية.', 'ألياف جديدة مرتبة تنبني حول المنطقة المتغيرة.', 'نسيج سليم أكبر يحمل الحمل بثقة.'];
+/* التشريح: كل بنية ووظيفتها والتمارين اللي تخدمها */
+const ANAT = [
+  { id: 'tendon', name: 'الوتر الرضفي', en: 'Patellar tendon', role: 'يوصل قوة الرباعية من الرضفة للظنبوب. هو بؤرة الإصابة (الاعتلال).', work: 'كل تمارين التأهيل تستهدفه بالدرجة الأولى، وأهمها التحميل الثابت ثم التدريجي (Q60، TKE، Step Down).', icon: 'tendon' },
+  { id: 'bone', name: 'الرضفة وحدبة الظنبوب', en: 'Patella & tibial tuberosity', role: 'الرضفة بكرة؛ الوتر يلتصق من الأسفل بحدبة الظنبوب، ومنشأ الألم عند القطب السفلي للرضفة.', work: 'البناء العظمي (سبير) يظهر بالأشعة، وما يمنع الوظيفة. المهم القدرة مو الصورة.', icon: 'bone' },
+  { id: 'muscle', name: 'الرباعية والمتسعة الإنسية (VMO)', en: 'Quadriceps & VMO', role: 'تشيل الحمل عن الوتر وتثبّت الرضفة. تضمر مع الألم (تثبيط عضلي).', work: 'Q60 (تثبيت 60°)، Terminal Knee Extension (المد الأخير)، Straight Leg Raise، Step Down.', icon: 'muscle' },
+  { id: 'nerve', name: 'الأعصاب والألم', en: 'Nociception', role: 'التحسس يزيد مع النيوفاسكيولر. الألم يقل مع التحميل المتدرج والثابت.', work: 'التمارين الثابتة (Isometric) تخفف الألم وتقلل تثبيط العضلة.', icon: 'nerve' },
+  { id: 'skin', name: 'الحوض والأرداف (Glutes)', en: 'Hip abductors / Glute med', role: 'ثبات الحوض يقلل ميل الركبة للداخل وقت المشي والجري، ويخفف الحمل عن الوتر.', work: 'Clam Shells، تبعيد/تقريب الورك، Bulgarian Split Squats، الجسر.', icon: 'skin' }
+];
+/* الأعراض الشائعة */
+const SYMPTOMS = [
+  { ic: '◉', t: 'ألم تحت الصابونة', d: 'ألم موضعي بالقسم الأمامي للركبة، تحت الرضفة تماماً، يزيد مع الضغط.' },
+  { ic: '☀', t: 'ألم/تيبس أول حركة بالصبح', d: 'أول خطوات بعد النوم أو الجلوس الطويل. أهم مؤشر على استجابة الوتر للحمل أمس.' },
+  { ic: '▲', t: 'النتوء تحت الصابونة', d: 'كتلة صغيرة ظهرت مع الزمن. غالباً تغيّر بالوتر وبناء عظمي، وما تمنع التعافي الوظيفي.' },
+  { ic: '▽', t: 'ألم بالثني العميق', d: 'السجود أو القرفصاء العميق يضغط الرضفة على الوتر (ضغط ضاغط). مع الوقت والتحميل يتحسن.' },
+  { ic: '✦', t: 'ألم بعد التمرين بـ24 ساعة', d: 'إذا صعد ألم الصبح فوق المستوى المعتاد، معناها حمل أمس كان أكثر من قدرة الوتر.' },
+  { ic: '⧗', t: 'تيبس وتعب عام', d: 'إحساس الركبة "ثقيلة" أو متعبة، وثقة أقل بالحركة. تتحسن مع التقوية.' }
+];
+const RED = [
+  'ألم مفاجئ حاد مع صوت "طرقة" أو الركبة "تفلت" (تمزق).',
+  'تورّم كبير سريع، أو احمرار وحرارة بالمفصل (التهاب/عدوى).',
+  'الركبة ما تقفل (تفرّ) أو ما تثني أبداً، أو إحساس عدم ثبات شديد.',
+  'ألم ليلي يوقظك، أو نزول وزن غير مبرر (أعراض تحتاج تقييم).',
+  'تنميل أو تنمّل مستمر بالساق.',
+  'صعوبة تحمّل الوزن تماماً أو عدم القدرة على المشي.'
+];
+const FAQ = [
+  ['هل النتوء والبناء العظمي يختفي؟', 'البناء العظمي غالباً يبقى بالأشعة، لكن الأهم هو الوظيفة والقدرة. نسيج الوتر السليم المتبقي يتحمل الحمل، والنتوء لحاله ما يعني استمرار الألم. الهدف نرفع قدرة الوتر والعضلة، وننزّل الألم لصفر.'],
+  ['ليش التمارين الثابتة (Isometric) أول؟', 'الأدلة (Rio 2015) تبين إن التثبيت بقوة متوسطة يخفف الألم ويقلل تثبيط العضلة لمدة 45 دقيقة تقريباً، ويسمح نبدأ تقوية بدون تهييج الوتر. القاعدة: تثبيت بدون ألم، وليس لأقصى حد مؤلم.'],
+  ['شكد أقدر أزيد الحمل؟', 'بقاعدة الـ24 ساعة: إذا ألم التمرين 3 أو أقل من 10، وألم الصبح رجع لمستواه المعتاد، فالحمل مقبول. إذا صعد ألم الصبح واستمر يومين، خفّف الحمل 20–30%. الزيادة تكون بالتدريج، مو مرة وحدة.'],
+  ['يوم الراحة ضروري؟', 'أي. الوتر والكولاجين يتبنون وقت الراحة بعد التحميل (نافذة 24–72 ساعة). البرنامج المتناوب (يومان تمرين ويوم راحة) يعطي وقت بناء كافي ويمنع التراكم.'],
+  ['أقدر ألعب كرة أو أجري هسة؟', 'لا الآن. الجري والقفز حمل "تخزين طاقة" يستحق مرحلة متقدمة وبقرار د. أصيل. الالتزام بالترتيب أهم من السرعة — القفز للمراحل يسبب انتكاسة.'],
+  ['الوزن الزائد يأثر؟', 'أي، الوزن الزائد يزيد الحمل على الركبة بالمشي والدرج. إنزال الوزن تدريجياً يخفف الحمل ويقوّي النتائج. حالياً الوزن نازل من 85 كغم.'],
+  ['ألم خفيف أثناء التمرين ممنوع؟', 'ألم ضمن 0–3 ممنوع يكون حاد أو يزيد مع العدّات. إذا الألم صعد تدريجياً خلال التمرين وكان حاد، وقف. وإذا ألم الصبح صعد، فهذا الحمل كان ثقيل.']
+];
+const GLOSS = [
+  ['الاعتلال (Tendinopathy)', 'خلل مزمن بالوتر: تغيّر بترتيب ألياف الكولاجين، مو بالضرورة التهاب حاد.'],
+  ['نموذج الاستمرارية (Continuum)', 'وصف لتطور الحالة: تفاعلي ← خلل ترميم ← تنكسي، ويمكن الانتقال للاتجاهين.'],
+  ['تثبيط عضلي (Inhibition)', 'الألم يقلل قدرة العصب على تشغيل العضلة، فتصير الرباعية أضعف من حجمها.'],
+  ['نيوفاسكيولر', 'أوعية دموية جديدة مع أعصاب صغيرة تنمو بالوتر المصاب، وترتبط بزيادة الألم.'],
+  ['قاعدة الـ24 ساعة', 'مؤشر: إذا رجع الألم لمستواه المعتاد خلال 24 ساعة، فالحمل كان مناسب.'],
+  ['الإيكسنتريك (Eccentric)', 'طور التمرين اللي تنزل فيه العضلة وهي تشتغل، مهم لبناء قدرة الوتر.'],
+  ['VMO (المتسعة الإنسية)', 'جزء من الرباعية يلتصق بالرضفة وينثني مع الثني، تضمر بالاعتلال وتقوى بالتمارين.'],
+  ['بناء عظمي (Bone spur)', 'تكوّن عظمي عند منشأ الوتر يظهر بالأشعة، غالباً نتيجة حمل مزمن.']
+];
+function kneeSVG(stage, layers) {
+  const on = k => layers.includes(k);
+  const tw = [14, 22, 19, 18, 18, 20][stage];
+  const tc = stage === 1 ? 'color-mix(in srgb, var(--tendon) 70%, var(--bad))' : 'var(--tendon)';
+  const muscleScale = stage >= 4 ? 1.08 : stage === 3 ? .9 : 1;
+  let fibers = '';
+  for (let i = -2; i <= 2; i++) {
+    const off = i * (tw / 6);
+    if (stage <= 1 || stage === 5) fibers += `<path d="M${322 + off},306 C${315 + off},350 ${300 + off},385 ${290 + off},410" stroke="var(--tendon-line)" stroke-width=".9" fill="none" opacity=".7"/>`;
+    else fibers += `<path d="M${322 + off},306 C${310 + off + (i % 2 ? 6 : -4)},340 ${305 + off - (i % 2 ? 5 : -3)},378 ${290 + off},410" stroke="var(--tendon-line)" stroke-width=".9" fill="none" opacity=".75" stroke-dasharray="${stage === 3 ? '6 4' : '10 3'}"/>`;
+  }
+  const vessels = stage >= 2 && stage <= 3 ? `<path d="M340,330 L322,336 L330,345 M338,360 L318,362 L326,372" stroke="var(--bad)" stroke-width="1.4" fill="none" opacity=".8"/>` : '';
+  const lesion = stage === 3 || stage === 4 ? `<ellipse cx="318" cy="324" rx="6" ry="10" fill="color-mix(in srgb, var(--ink) 35%, transparent)"/>` : '';
+  const spur = stage >= 3 ? `<path d="M314,302 L326,318 L330,300 Z" fill="var(--bone)" stroke="var(--bone-line)" stroke-width="1.2"/>` : '';
+  const swell = stage === 1 ? `<path d="M322,306 C315,350 300,385 290,410" stroke="var(--bad)" stroke-width="${tw + 12}" opacity=".12" fill="none" stroke-linecap="round"/>` : '';
+  const pain = stage >= 1 && stage <= 3 ? `<circle cx="318" cy="318" r="${12 + stage * 3}" fill="none" stroke="var(--bad)" stroke-width="2" stroke-dasharray="3 3" opacity=".8"/>` : '';
+  return `<svg viewBox="0 0 440 540" aria-label="رسم جانبي للركبة اليسرى بطبقات">
+    ${on('skin') ? `<g class="ly" data-ly="skin"><path d="M150,0 L330,0 C345,120 352,220 350,300 C352,350 330,420 300,470 L292,540 L150,540 C140,470 130,420 128,360 C120,280 140,140 150,0Z" fill="var(--skin)" opacity=".35" stroke="var(--muscle-line)" stroke-width="1" stroke-dasharray="4 4"/></g>` : ''}
+    ${on('muscle') ? `<g class="ly" data-ly="muscle"><g transform="translate(300 120) scale(${muscleScale}) translate(-300 -120)"><path d="M248,0 C302,40 334,140 322,228 L302,234 C302,150 272,60 244,0Z" fill="var(--muscle)" stroke="var(--muscle-line)" stroke-width="1.2" opacity=".9"/></g>
+      <path d="M176,0 C140,60 122,180 142,300 L162,300 C152,200 166,80 182,0Z" fill="var(--muscle)" stroke="var(--muscle-line)" stroke-width="1.2" opacity=".8"/>
+      <path d="M166,332 C120,385 126,470 176,540 L194,540 C178,460 176,392 182,346Z" fill="var(--muscle)" stroke="var(--muscle-line)" stroke-width="1.2" opacity=".8"/>
+      <path d="M302,228 C312,236 318,238 320,236" stroke="var(--tendon-line)" stroke-width="6" stroke-linecap="round" fill="none"/></g>` : ''}
+    ${on('bone') ? `<g class="ly" data-ly="bone"><path d="M178,0 L246,0 C249,120 256,200 286,250 C306,282 300,322 266,336 C230,350 186,346 166,320 C146,294 160,250 168,200 C173,140 178,60 178,0Z" fill="var(--bone)" stroke="var(--bone-line)" stroke-width="1.5"/>
+      <path d="M170,360 C190,345 272,345 292,362 C302,376 294,394 280,402 L264,540 L192,540 L184,402 C170,394 160,376 170,360Z" fill="var(--bone)" stroke="var(--bone-line)" stroke-width="1.5"/>
+      <path d="M282,398 C292,402 296,414 286,420 L276,418Z" fill="var(--bone)" stroke="var(--bone-line)" stroke-width="1.2"/>
+      <path d="M148,384 C156,378 166,380 168,388 L172,540 L160,540 Z" fill="var(--bone)" stroke="var(--bone-line)" stroke-width="1.2"/>
+      <ellipse cx="322" cy="268" rx="19" ry="38" transform="rotate(-8 322 268)" fill="var(--bone)" stroke="var(--bone-line)" stroke-width="1.5"/>${spur}</g>` : ''}
+    ${on('tendon') ? `<g class="ly" data-ly="tendon">${swell}<path d="M322,306 C315,350 300,385 290,410" stroke="${tc}" stroke-width="${tw}" fill="none" stroke-linecap="round"/><path d="M322,306 C315,350 300,385 290,410" stroke="var(--tendon-line)" stroke-width="${tw}" fill="none" stroke-linecap="round" opacity=".25"/>${fibers}${vessels}${lesion}</g>` : ''}
+    ${on('nerve') ? `<g class="ly" data-ly="nerve"><path d="M232,0 C252,80 286,150 300,210" stroke="var(--nerve)" stroke-width="2.4" fill="none"/><path d="M262,140 C290,170 312,190 318,214" stroke="var(--nerve)" stroke-width="1.6" fill="none"/>
+      <path d="M250,300 C268,334 300,346 342,338" stroke="var(--nerve)" stroke-width="1.8" fill="none" stroke-dasharray="1 0"/>
+      <path d="M164,0 C158,120 150,250 160,340 C164,420 170,480 172,540" stroke="var(--nerve)" stroke-width="2.4" fill="none"/><path d="M160,330 C150,360 146,385 152,400" stroke="var(--nerve)" stroke-width="1.6" fill="none"/></g>` : ''}
+    ${pain}
+    <g font-family="IBM Plex Sans Arabic, sans-serif" font-size="12" fill="var(--ink)">
+      ${on('bone') ? '<text x="200" y="40">عظم الفخذ</text><text x="350" y="262">الرضفة</text><text x="200" y="470">الظنبوب</text><text x="296" y="436">حدبة الظنبوب</text>' : ''}
+      ${on('tendon') ? '<text x="342" y="380" fill="var(--tendon-line)" font-weight="700">الوتر الرضفي</text>' : ''}
+      ${on('muscle') ? '<text x="300" y="70" fill="var(--muscle-line)">الرباعية</text><text x="70" y="160" fill="var(--muscle-line)">الفخذ الخلفي</text><text x="70" y="460" fill="var(--muscle-line)">السمانة</text>' : ''}
+      ${on('nerve') ? '<text x="232" y="110" fill="var(--nerve)" font-weight="700">العصب الفخذي</text><text x="346" y="350" fill="var(--nerve)" font-size="11">فرع تحت الرضفة</text><text x="96" y="300" fill="var(--nerve)">العصب الوركي</text>' : ''}
+    </g>
+    <text x="16" y="530" font-size="11" fill="var(--muted)">قدام ←</text>
+  </svg>`;
+}
+function microSVG(stage) {
+  let s = ''; const rnd = (i, k) => ((Math.sin(i * 12.9898 + k * 78.233) * 43758.5453) % 1 + 1) % 1;
+  for (let i = 0; i < 14; i++) {
+    const y = 14 + i * 8;
+    if (stage === 0 || stage === 5) s += `<path d="M10,${y} C80,${y - 2} 160,${y + 2} 230,${y}" stroke="var(--tendon-line)" stroke-width="2.2" fill="none"/>`;
+    else if (stage === 1) s += `<path d="M10,${y} C80,${y - 3} 160,${y + 3} 230,${y}" stroke="var(--tendon-line)" stroke-width="1.8" fill="none" opacity=".8"/>`;
+    else if (stage === 2) s += `<path d="M10,${y} C60,${y + (rnd(i, 1) - .5) * 14} 150,${y + (rnd(i, 2) - .5) * 14} 230,${y + (rnd(i, 3) - .5) * 8}" stroke="var(--tendon-line)" stroke-width="1.6" fill="none"/>`;
+    else if (stage === 3) s += `<path d="M10,${y} C60,${y + (rnd(i, 1) - .5) * 18} 150,${y + (rnd(i, 2) - .5) * 18} 230,${y}" stroke="var(--tendon-line)" stroke-width="1.4" fill="none" stroke-dasharray="${8 + rnd(i, 4) * 10} ${4 + rnd(i, 5) * 8}"/>`;
+    else s += `<path d="M10,${y} C80,${y - 2} 160,${y + 2} 230,${y}" stroke="var(--tendon-line)" stroke-width="${i > 4 && i < 9 ? 1.2 : 2.2}" fill="none" ${i > 4 && i < 9 ? 'stroke-dasharray="7 5"' : ''}/>`;
+  }
+  if (stage === 2 || stage === 3) s += `<path d="M120,0 C125,40 115,80 128,128 M180,0 C176,50 186,90 178,128" stroke="var(--bad)" stroke-width="1.6" fill="none"/>`;
+  return `<svg viewBox="0 0 240 128" aria-label="ألياف الكولاجين بالمجهر" style="width:100%;height:auto;direction:ltr">${s}</svg>`;
+}
+const REFS = [
+  ['Cook, J. L., & Purdam, C. R. (2009). Is tendon pathology a continuum? A pathology model to explain the clinical presentation of load-induced tendinopathy. British Journal of Sports Medicine, 43(6), 409–416.', 'https://pubmed.ncbi.nlm.nih.gov/18812414/'],
+  ['Cook, J. L., Rio, E., Purdam, C. R., & Docking, S. I. (2016). Revisiting the continuum model of tendon pathology: What is its merit in clinical practice and research? British Journal of Sports Medicine, 50(19), 1187–1191.', 'https://pubmed.ncbi.nlm.nih.gov/27127294/'],
+  ['Malliaras, P., Cook, J., Purdam, C., & Rio, E. (2015). Patellar tendinopathy: Clinical diagnosis, load management, and advice for challenging case presentations. Journal of Orthopaedic & Sports Physical Therapy, 45(11), 887–898. https://doi.org/10.2519/jospt.2015.5987', 'https://www.jospt.org/doi/10.2519/jospt.2015.5987'],
+  ['Rio, E., Kidgell, D., Purdam, C., Gaida, J., Moseley, G. L., Pearce, A. J., & Cook, J. (2015). Isometric exercise induces analgesia and reduces inhibition in patellar tendinopathy. British Journal of Sports Medicine, 49(19), 1277–1283. https://doi.org/10.1136/bjsports-2014-094386', 'https://pubmed.ncbi.nlm.nih.gov/25979840/'],
+  ['Breda, S. J., Oei, E. H. G., Zwerver, J., Visser, E., Waarsing, E., Krestin, G. P., & de Vos, R. J. (2021). Effectiveness of progressive tendon-loading exercise therapy in patients with patellar tendinopathy: A randomised clinical trial. British Journal of Sports Medicine, 55(9), 501–509. (وصول مفتوح)', 'https://pmc.ncbi.nlm.nih.gov/articles/PMC8070614/']
+];
+VIEWS.injury = {
+  stage: 4, layers: ['bone', 'muscle', 'tendon', 'nerve'], play: null, sub: 'view', anat: 'tendon',
+  html() {
+    const V = VIEWS.injury, S = STAGES[V.stage];
+    const L = [['skin', 'الحوض', 'var(--skin)'], ['bone', 'العظام', 'var(--bone)'], ['muscle', 'العضلات', 'var(--muscle)'], ['tendon', 'الوتر', 'var(--tendon-line)'], ['nerve', 'الأعصاب', 'var(--nerve)']];
+    const subs = [['view', 'التمثيل المرئي'], ['anatomy', 'التشريح'], ['symptoms', 'الأعراض'], ['load', 'إدارة الحمل'], ['exercises', 'التمارين'], ['faq', 'أسئلة'], ['refs', 'المراجع']];
+    return `<div class="head"><div><h1>الإصابة: اعتلال الوتر الرضفي</h1><p>مرجع تفصيلي مصوّر: المراحل، التشريح، الأعراض، إدارة الحمل، والتمارين. اعتمد على المعالج للتشخيص والقرار.</p></div>
+      <span class="badge path">${esc(S.t)}</span></div>
+    <div class="seg" role="tablist" style="margin-bottom:14px">${subs.map(([k, l]) => `<button role="tab" data-isub="${k}" aria-selected="${V.sub === k}">${l}</button>`).join('')}</div>
+    ${V.sub === 'view' ? this.viewTab(S, L) : V.sub === 'anatomy' ? this.anatomyTab() : V.sub === 'symptoms' ? this.symptomsTab() : V.sub === 'load' ? this.loadTab() : V.sub === 'exercises' ? this.exTab() : V.sub === 'faq' ? this.faqTab() : this.refsTab()}`;
+  },
+  viewTab(S, L) {
+    const V = VIEWS.injury;
+    return `<div class="knee">
+      <section class="card"><div class="row" style="justify-content:space-between"><div class="layer-toggles" role="group" aria-label="الطبقات">${L.map(([k, l, c]) => `<button data-layer="${k}" aria-pressed="${V.layers.includes(k)}"><i style="background:${c}"></i>${l}</button>`).join('')}</div>
+        <button class="btn sm" id="play">${V.play ? '■ إيقاف' : '▶ شغّل المراحل'}</button></div>
+        <div id="kneeBox">${kneeSVG(V.stage, V.layers)}</div>
+        <input type="range" class="stage-slider" id="stg" min="0" max="${STAGES.length - 1}" value="${V.stage}" aria-label="المرحلة">
+        <div class="stages">${STAGES.map((s, i) => `<span data-st="${i}" class="${i === V.stage ? 'on' : ''}">${s.t}</span>`).join('')}</div></section>
+      <div class="stack">
+        <section class="card" id="stageCard"><h2>${esc(S.t)} <span class="badge path">${esc(S.when)}</span></h2>
+          <p class="sub" style="margin:0 0 8px">${esc(S.summary)}</p>
+          <div class="what">${[['bone', 'العظم', S.bone], ['muscle', 'العضلة', S.muscle], ['tendon', 'الوتر', S.tendon], ['nerve', 'العصب والألم', S.nerve], ['skin', 'الجسم والحياة اليومية', S.body]].map(([k, l, t]) => `<div data-w="${k}" class="hov"><b>${l}</b>${esc(t)}</div>`).join('')}</div>
+          <div class="grid g3" style="margin-top:10px">
+            <div class="tile"><span>قدرة الوتر</span><b style="font-size:14px">${esc(S.load)}</b></div>
+            <div class="tile"><span>شنو تحس</span><b style="font-size:14px">${esc(S.feel)}</b></div>
+            <div class="tile"><span>شنو تسوي</span><b style="font-size:14px">${esc(S.do)}</b></div>
+          </div>
+          <div class="note warn" style="margin-top:10px"><b>راقب:</b> ${esc(S.watch)}</div></section>
+        <section class="card hov"><h2>ألياف الوتر تحت المجهر</h2>${microSVG(V.stage)}<p class="muted" style="margin:6px 0 0">${esc(STAGE_FIBERS[V.stage])}</p></section>
+      </div></div>
+      <section class="card" style="margin-top:14px"><h2>الأشعة <span class="badge">${fD(D.xrays[0]?.date || today(), { day: 'numeric', month: 'long', year: 'numeric' })}</span></h2>
+        <div class="xr grid g2">${D.xrays.map(x => `<figure class="hov" style="margin:0"><img src="${esc(x.file)}" alt="${esc(x.caption)}" loading="lazy"><figcaption>${esc(x.caption)}</figcaption></figure>`).join('')}</div>
+        <p class="muted" style="margin:8px 0 0">الصورة توضح البناء العظمي عند منشأ الوتر. تذكّر: الوظيفة هي المقياس، مو الصورة.</p></section>`;
+  },
+  anatomyTab() {
+    const V = VIEWS.injury, a = ANAT.find(x => x.id === V.anat) || ANAT[0];
+    return `<section class="card" style="margin-bottom:14px"><h2>مستكشف التشريح</h2>
+      <p class="sub" style="margin-top:0">اضغط أي بنية حتى تعرف وظيفتها والتمارين اللي تخدمها. الرسم يبرز الطبقة المطابقة.</p>
+      <div class="chips">${ANAT.map(x => `<button class="chip" data-anat="${x.id}" aria-pressed="${x.id === V.anat}">${esc(x.name)}</button>`).join('')}</div>
+      <div class="knee" style="margin-top:12px">
+        <div id="anatBox">${kneeSVG(4, V.layers.includes(a.icon) ? V.layers : [...V.layers, a.icon])}</div>
+        <div class="stack">
+          <div class="anat"><div class="ab"><b>${esc(a.name)}</b><p class="muted" dir="ltr" style="font-family:var(--f-body)">${esc(a.en)}</p></div></div>
+          <div class="ab"><b>الوظيفة</b><p>${esc(a.role)}</p></div>
+          <div class="ab"><b>التمارين اللي تخدمها</b><p>${esc(a.work)}</p></div>
+        </div></div></section>
+      <section class="card"><h2>ليه الرباعية والحوض مهمين؟</h2>
+        <p class="sub" style="margin-top:0">الوتر ما يشتغل لحاله. الرباعية تنتج القوة، والوتر يوصلها. إذا الرباعية ضعيفة، الوتر يشيل حمل أكثر من طاقته. وإذا الحوض غير ثابت، الركبة تميل للداخل والحمل يتركز على الوتر. لهذا التأهيل يبني الثلاثة سوا: عضلة، وتر، وتحكم حركي.</p>
+        <div class="grid g3">${[['قوة الرباعية', 'Q60 · TKE · SLR · Step Down'], ['ثبات الحوض', 'Clam · تبعيد/تقريب الورك · Split Squat'], ['قدرة الوتر', 'التمارين الثابتة ثم التحميل التدريجي والوظيفي']].map(([t, d]) => `<div class="tile"><span>${t}</span><b style="font-size:14px">${d}</b></div>`).join('')}</div></section>`;
+  },
+  symptomsTab() {
+    return `<div class="grid g2" style="align-items:start">
+      <section class="card"><h2>الأعراض الشائعة</h2><div class="phen">${SYMPTOMS.map(s => `<div class="ph-row hov"><span class="ic" style="color:var(--accent)">${s.ic}</span><div><b>${esc(s.t)}</b><span>${esc(s.d)}</span></div></div>`).join('')}</div></section>
+      <div class="stack">
+        <section class="card"><h2>علامات تحتاج المعالج فوراً <span class="badge bad">احمر</span></h2><div class="phen">${RED.map(r => `<div class="ph-row"><span class="ic" style="color:var(--bad)">⚑</span><div><span>${esc(r)}</span></div></div>`).join('')}</div>
+          <p class="muted" style="margin:8px 0 0">وجود أي واحدة منها لازم تقييم طبي. هذا التطبيق أداة متابعة، مو تشخيص.</p></section>
+        <section class="card"><h2>إدارة الألم بالقاعدة</h2><div class="what"><div><b>خلال التمرين</b>الألم المسموح 0–3 من 10، ويكون خفيف وثابت أو نازل، مو حاد أو صاعد.</div><div><b>بعد التمرين</b>خلال ساعات، يصفى الألم وترجع طبيعي.</div><div><b>ثاني يوم بالصبح</b>«قاعدة الـ24 ساعة»: إذا رجع لمستواه المعتاد، الحمل مناسب. إذا صعد واستمر، خفّف.</div></div></section>
+      </div></div>`;
+  },
+  loadTab() {
+    return `<div class="grid g2" style="align-items:start">
+      <section class="card"><h2>الخريطة: من الحمل إلى العلاج</h2>${mapSVG()}<p class="muted" style="margin:4px 0 0">مرّر على أي مربع حتى تشوف شنو يأثر وشنو يتأثر بيه.</p></section>
+      <div class="stack">
+        <section class="card"><h2>التحميل مقابل القدرة</h2>
+          <div class="what"><div><b>القاعدة</b>الوتر يصير أقوى فقط إذا الحمل أقل من قدرته بقليل، ويكفي للتحفيز. الحمل الزائد = تهييج. الحمل الناقص = ما يبني.</div><div><b>التدرج</b>نزيد العدد ← الثبات ← الوزن ← السرعة ← القفز، مو كلهن مرة وحدة.</div><div><b>الراحة</b>البناء يحدث بعد الحمل، بنافذة 24–72 ساعة. لهذا يوم الراحة جزء من الخطة.</div></div></section>
+        <section class="card"><h2>أخطاء شائعة</h2><div class="phen">${[['التوقف الكامل عن الحركة', 'يضعف العضلة والوتر. الأفضل إدارة الحمل مو الراحة التامة.'], ['القفز للمراحل الأثقل', 'أشهر سبب للانتكاسة. كل مرحلة تستحق قبل الانتقال.'], ['تجاهل ألم الصبح', 'أهم إشارة على زيادة الحمل. لو صعد، خفّف.'], ['مقارنة نفسك بغيرك', 'التعافي فردي. قارن نفسك بنفسك قبل أسبوع.'], ['الاعتماد على الصورة فقط', 'البناء العظمي ما يعني استمرار الألم. الوظيفة هي المقياس.']].map(([t, d]) => `<div class="ph-row hov"><span class="ic" style="color:var(--warn)">✕</span><div><b>${esc(t)}</b><span>${esc(d)}</span></div></div>`).join('')}</div></section>
+      </div></div>`;
+  },
+  exTab() {
+    const phs = phasesSorted().filter(ph => activeEx(ph).length).reverse();
+    return `<section class="card" style="margin-bottom:14px"><h2>ربط التمارين بالبنية</h2>
+      <p class="sub" style="margin-top:0">كل تمرين بالخطة، وشنو يشغّل من عضلة أو وتر. هذا اللي يفسر ليش الترتيب بهذي الطريقة.</p>
+      <div class="t-wrap"><table class="t"><thead><tr><th class="l">التمرين</th><th>المرحلة</th><th>الجرعة</th><th class="l">الهدف</th></tr></thead><tbody>
+        ${phs.flatMap(ph => activeEx(ph).map(e => `<tr><td class="l" dir="ltr" style="text-align:right">${esc(e.name)}${e.session ? ` <span class="badge ${e.session === 'A' ? 'acc' : 'path'}">${SESSION_LABEL[e.session] || e.session}</span>` : ''}</td><td>${esc(ph.name.split('—')[0].trim())}</td><td>${esc(e.dose || '—')}</td><td class="l">${esc(e.goal || '—')}</td></tr>`)).join('')}
+      </tbody></table></div></section>
+      <section class="card"><h2>مبادئ البرنامج</h2><div class="grid g2">${[['تسكين أولاً', 'التمارين الثابتة تخفف الألم وتفتح المجال للتقوية.'], ['عزل ثم وظيفي', 'نقوّي عضلة معزولة (Q60، Clam) قبل الحركات الوظيفية (Step Down، Split Squat).'], ['تحكم بالحركة', 'الإيقاع البطيء والثبات يبنيان الوتر أكثر من السرعة.'], ['توازن', 'الرباعية مع الفخذ الخلفي والأرداف، والحوض مع الركبة.'], ['تدرج', 'نزيد الحمل فقط لما نستحق، حسب الألم وقاعدة الـ24 ساعة.'], ['صيانة', 'حتى بعد التعافي، تمرين قوة مستمر يمنع الرجوع.']].map(([t, d]) => `<div class="ab"><b>${t}</b><p>${d}</p></div>`).join('')}</div></section>`;
+  },
+  faqTab() {
+    return `<section class="card"><h2>أسئلة شائعة</h2><div class="stack">${FAQ.map(([q, a]) => `<details class="oldph" style="border:1px solid var(--line);border-radius:12px;padding:10px 14px"><summary><b>${esc(q)}</b></summary><p class="sub" style="margin:6px 0 0">${esc(a)}</p></details>`).join('')}</div></section>`;
+  },
+  refsTab() {
+    return `<section class="card" style="margin-bottom:14px"><h2>المعجم</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">المصطلح</th><th class="l">الشرح</th></tr></thead><tbody>${GLOSS.map(([t, d]) => `<tr><td class="l"><b>${esc(t)}</b></td><td class="l">${esc(d)}</td></tr>`).join('')}</tbody></table></div></section>
+      <section class="card"><h2>المراجع العلمية <span class="muted">${REFS.length} مصادر</span></h2><ol class="refs">${REFS.map(([t, u]) => `<li>${esc(t)} <a href="${u}" target="_blank" rel="noopener">رابط</a></li>`).join('')}</ol>
+      <p class="muted" style="margin:0">الرسوم توضيحية ومبسطة لمراحل نموذج الاستمرارية، ومو صورة طبية لركبتك. التشخيص والقرار من المعالج.</p></section>`;
+  },
+  bind(root) {
+    const V = VIEWS.injury, re = () => { const y = scrollY; render(); scrollTo(0, y); };
+    $$('[data-isub]', root).forEach(b => b.onclick = () => { stop(); V.sub = b.dataset.isub; render(); scrollTo(0, 0); });
+    if (V.sub === 'anatomy') { $$('[data-anat]', root).forEach(b => b.onclick = () => { V.anat = b.dataset.anat; re(); }); return; }
+    if (V.sub === 'load') { const map = $('.map', root); if (map) $$('.mn', map).forEach(n => { n.addEventListener('pointerenter', () => { map.classList.add('dim'); const i = n.dataset.n; $$('.me', map).forEach(e => e.classList.toggle('hl', e.dataset.a === i || e.dataset.b === i)); $$('.mn', map).forEach(m => m.classList.toggle('hl', m === n || $$('.me.hl', map).some(e => e.dataset.a === m.dataset.n || e.dataset.b === m.dataset.n))); }); map.addEventListener('pointerleave', () => { map.classList.remove('dim'); $$('.hl', map).forEach(x => x.classList.remove('hl')); }); }); return; }
+    if (V.sub !== 'view') return;
+    const go = s => { V.stage = s; re(); };
+    $('#stg', root).oninput = e => { stop(); go(+e.target.value); };
+    $$('[data-st]', root).forEach(s => s.onclick = () => { stop(); go(+s.dataset.st); });
+    $$('[data-layer]', root).forEach(b => b.onclick = () => { const k = b.dataset.layer; V.layers = V.layers.includes(k) ? V.layers.filter(x => x !== k) : [...V.layers, k]; re(); });
+    function stop() { if (V.play) { clearInterval(V.play); V.play = null; } }
+    $('#play', root).onclick = () => { if (V.play) { stop(); re(); return; } V.stage = 0; V.play = setInterval(() => { if (route.tab !== 'injury' || V.sub !== 'view') return stop(); if (V.stage >= STAGES.length - 1) { stop(); re(); return; } go(V.stage + 1); }, 1700); re(); };
+    const svg = $('#kneeBox svg', root), card = $('#stageCard', root);
+    const hl = k => { svg.classList.toggle('focus', !!k); $$('.ly', svg).forEach(g => g.classList.toggle('on', g.dataset.ly === k)); $$('[data-w]', card).forEach(w => w.classList.toggle('lit', w.dataset.w === k)); };
+    $$('.ly', svg).forEach(g => { g.addEventListener('pointerenter', () => hl(g.dataset.ly)); g.addEventListener('click', () => hl(g.dataset.ly)); });
+    svg.addEventListener('pointerleave', () => hl(null));
+    $$('[data-w]', card).forEach(w => { w.addEventListener('pointerenter', () => hl(w.dataset.w)); w.addEventListener('pointerleave', () => hl(null)); });
+  }
+};
+function mapSVG() {
+  const N = [['الحمل المتكرر', 'كرة، مشي، ليك برس', 70, 40, 'var(--warn)'], ['قدرة الوتر', 'أقل من الحمل', 250, 40, 'var(--bad)'], ['الوتر يتغير', 'تفاعلي ← تنكسي', 430, 40, 'var(--bad)'],
+    ['الألم والتثبيط', 'العضلة تضعف', 430, 150, 'var(--bad)'], ['الحركة تقل', 'الوزن يزيد', 250, 150, 'var(--warn)'], ['حلقة مفرغة', '', 70, 150, 'var(--muted)'],
+    ['تحميل تدريجي', 'ثابت ← ديناميكي', 70, 260, 'var(--accent)'], ['قدرة أعلى', 'عضلة + وتر', 250, 260, 'var(--accent)'], ['الهدف', 'السجدة والملعب', 430, 260, 'var(--path)']];
+  const E = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 0], [5, 6], [6, 7], [7, 8]];
+  return `<svg class="map" viewBox="0 0 500 310" style="width:100%;height:auto;direction:ltr" aria-label="خريطة الأسباب والعلاج">
+    <defs><marker id="ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8Z" fill="var(--muted)"/></marker></defs>
+    ${E.map(([a, b]) => { let [x1, y1, x2, y2] = [N[a][2], N[a][3], N[b][2], N[b][3]]; const k = a === 5 && b === 6; if (!k) { if (y1 === y2) { const d = Math.sign(x2 - x1) * 64; x1 += d; x2 -= d; } else { const d = Math.sign(y2 - y1) * 24; y1 += d; y2 -= d; } } return `<line class="me" data-a="${a}" data-b="${b}" x1="${x1}" y1="${y1 + (k ? 15 : 0)}" x2="${x2}" y2="${y2 - (k ? 22 : 0)}" stroke="${k ? 'var(--accent)' : 'var(--muted)'}" stroke-width="${k ? 2 : 1.4}" ${k ? 'stroke-dasharray="4 3"' : ''} marker-end="url(#ar)"/>`; }).join('')}
+    ${N.map(([t, s, x, y, c], i) => `<g class="mn" data-n="${i}"><rect x="${x - 62}" y="${y - 22}" width="124" height="${s ? 44 : 30}" rx="10" fill="var(--surface)" stroke="${c}" stroke-width="2"/><text x="${x}" y="${y - (s ? 4 : -4)}" text-anchor="middle" font-size="12.5" font-weight="700" fill="var(--ink)" font-family="IBM Plex Sans Arabic, sans-serif">${t}</text>${s ? `<text x="${x}" y="${y + 13}" text-anchor="middle" font-size="10.5" fill="var(--ink-2)" font-family="IBM Plex Sans Arabic, sans-serif">${s}</text>` : ''}</g>`).join('')}
+    <text x="78" y="212" font-size="10.5" fill="var(--accent)" font-family="IBM Plex Sans Arabic, sans-serif">كسر الحلقة</text></svg>`;
+}
+
+/* ================= التقارير ================= */
+function kpi(l, v, d) { return `<div class="card kpi" style="padding:12px 14px"><div class="l">${l}</div><div class="v" style="font-size:22px">${v}</div>${d ? `<div class="d">${d}</div>` : ''}</div>`; }
+function consultReport(from, to) {
+  if (!from || !to || from > to) return '<p class="muted">اختر فترة صحيحة.</p>';
+  const days = range(from, to), w = windowStats(days), phs = [...new Map(w.st.filter(s => s.ph).map(s => [s.ph.id, s.ph])).values()], ph = phs.at(-1) || curPhase();
+  const sd = w.st.filter(s => s.log?.steps != null), h = Math.ceil(sd.length / 2), s1 = avg(sd.slice(0, h).map(s => s.log.steps)), s2 = avg(sd.slice(h).map(s => s.log.steps));
+  const ws = series('weight').filter(x => x.x <= to), wEnd = ws.at(-1);
+  const exRows = []; for (const P of phs) { const pd = w.st.filter(s => s.ph === P && s.session !== 'nodata'); for (const e of activeEx(P)) { let dn = 0, sk = 0; pd.forEach(s => { const v = s.log?.ex?.[e.id]?.d; if (v === true) dn++; if (v === false) sk++; }); exRows.push({ P, e, dn, sk, n: pd.length }); } }
+  const notes = w.st.filter(s => s.log?.notes), qs = (D.report.questions || '').split('\n').map(x => x.trim()).filter(Boolean);
+  const summary = D.report.summary && D.report.summaryFor === from + '|' + to ? D.report.summary : '';
+  return `<div class="paper">
+    <div class="row" style="justify-content:space-between;align-items:start"><div><h1 style="font-size:20px">تقرير متابعة تأهيل الوتر الرضفي</h1><div class="muted">${esc(D.profile.name)} · ${fD(from, { day: 'numeric', month: 'short', year: 'numeric' })} — ${fD(to, { day: 'numeric', month: 'short', year: 'numeric' })}</div></div><div class="muted" style="text-align:end">${esc(ph?.name || '')}<br>المعالج: ${esc(D.profile.therapist)}</div></div>
+    ${summary ? `<h2>الملخص</h2><p style="white-space:pre-wrap;margin:0">${esc(summary)}</p><p class="muted" style="margin:4px 0 0">ملخص مكتوب بمساعدة Claude من الأرقام المسجلة.</p>` : ''}
+    <h2>المؤشرات</h2><div class="grid g4">${kpi('الالتزام بالتمارين', w.adh == null ? '—' : r0(w.adh * 100) + '%', `${w.logged.length} من ${days.length} يوم مسجل`)}${kpi('أعلى ألم', w.painMax < 0 ? '—' : w.painMax + '/10', `الحد ${ph?.painLimit ?? 0} · أيام فوق الحد ${w.over}`)}${kpi('معدل الخطوات', fmt(w.steps), sd.length > 3 ? `من ${fmt(s1)} إلى ${fmt(s2)}` : '')}${kpi('الوزن', wEnd ? fmt(wEnd.y, 1) + ' كغم' : '—', `الهدف ${D.profile.goalWeight}`)}</div>
+    <h2>الرسوم</h2><div class="grid g2">${chart({ type: 'bar', w: 460, h: 180, data: days.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), refs: [{ y: ph?.stepTarget || 7000, label: fmt(ph?.stepTarget || 7000) }], tip: d => `${fD(d.x)}: ${fmt(d.y)}` })}${chart({ type: 'line', w: 460, h: 180, data: w.st.map(s => ({ x: s.date, y: s.painMax, m: s.painMorning })), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], refs: [{ y: ph?.painLimit ?? 0, label: 'الحد', color: 'var(--ok)' }], tip: d => `${fD(d.x)}: ${d.y ?? '—'} / ${d.m ?? '—'}` })}</div>
+    <h2>الالتزام حسب التمرين</h2><div class="t-wrap"><table class="t"><thead><tr><th class="l">التمرين</th><th>الجرعة</th><th>منجز</th><th>متروك</th><th>النسبة</th></tr></thead><tbody>${exRows.map(r => `<tr><td class="l" dir="ltr" style="text-align:right">${esc(r.e.name)}</td><td>${esc(r.e.dose)}</td><td>${r.dn}/${r.n}</td><td>${r.sk || '–'}</td><td style="color:${r.n && r.dn / r.n < .6 ? 'var(--warn)' : 'var(--ink)'}">${r.n ? r0(r.dn / r.n * 100) + '%' : '—'}</td></tr>`).join('')}</tbody></table></div>
+    <h2>السجل اليومي</h2>${phs.map(P => { const exs = activeEx(P); return `<div class="t-wrap" style="margin-bottom:8px"><table class="t"><thead><tr><th class="l">اليوم</th>${exs.map(e => `<th dir="ltr">${esc(e.short)}</th>`).join('')}<th>ألم</th><th>صبح</th><th>خطوات</th></tr></thead><tbody>${w.st.filter(s => s.ph === P).map(s => `<tr><td class="l">${wd(s.date)} ${fS(s.date)}</td>${exs.map(e => { const v = s.log?.ex?.[e.id]?.d; return v === true ? '<td class="c-done">✓</td>' : v === false ? '<td class="c-skip">✕</td>' : '<td class="c-na">–</td>'; }).join('')}<td style="color:${painCol(s.painMax, s.limit)}">${s.painMax ?? '–'}</td><td style="color:${painCol(s.painMorning, s.limit)}">${s.painMorning ?? '–'}</td><td>${s.log?.steps != null ? fmt(s.log.steps) : '–'}</td></tr>`).join('')}</tbody></table></div>`; }).join('')}
+    <h2>ملاحظات المريض</h2>${notes.length ? notes.map(s => `<div style="padding:6px 0;border-bottom:1px solid var(--line)"><b style="font-size:13px;color:var(--accent)">${wd(s.date)} ${fD(s.date)}${s.log.flag ? ' · مهم' : ''}</b><p dir="auto" style="margin:2px 0 0;white-space:pre-wrap">${esc(s.log.notes)}</p></div>`).join('') : '<p class="muted">لا توجد.</p>'}
+    ${qs.length ? `<h2>أسئلة للدكتور</h2><ol>${qs.map(x => `<li>${esc(x)}</li>`).join('')}</ol>` : ''}
+  </div>`;
+}
+function journeyReport() {
+  const p = D.profile, t = today(), all = range(p.startDate, t), w = windowStats(all);
+  const first14 = windowStats(range(p.startDate, addDays(p.startDate, 13))), last14 = windowStats(range(addDays(t, -13), t));
+  const goalsDone = D.goals.filter(g => goalProgress(g).p >= 1);
+  return `<div class="paper">
+    <h1 style="font-size:22px">رحلة رُكبة: من الإصابة إلى ${levelStatus(D.levels.at(-1)) === 'done' ? 'التعافي' : 'اليوم'}</h1><div class="muted">${esc(p.name)} · ${esc(p.diagnosis)} · المعالج ${esc(p.therapist)}</div>
+    <h2>القصة باختصار</h2><div class="tl">${D.timeline.map(e => `<div class="${e.kind}"><b>${esc(e.title)}</b><small>${fMonth(e.date)}</small><div class="sub" style="font-size:14px">${esc(e.text)}</div></div>`).join('')}</div>
+    <h2>قبل وبعد</h2><div class="grid g4">${kpi('أيام العلاج', fmt(all.length), `منذ ${fD(p.startDate)}`)}${kpi('الخطوات', `${fmt(first14.steps)} ← ${fmt(last14.steps)}`, 'أول 14 يوم مقابل آخر 14')}${kpi('الالتزام الكلي', w.adh == null ? '—' : r0(w.adh * 100) + '%', `${w.logged.length} يوم مسجل`)}${kpi('زاوية الثني', `90° ← ${curFlex()}°`, `هدف السجود ${p.flexionGoal}°`)}</div>
+    <h2>المستويات</h2><div>${D.levels.map((L, i) => { const s = levelStatus(L); return `<div class="lv ${s}"><span class="n">${i + 1}</span><div><b>${esc(L.name)}</b> ${s === 'done' ? '<span class="badge ok">تم</span>' : s === 'now' ? '<span class="badge path">الآن</span>' : ''}<div class="sub" style="font-size:14px">${esc(L.desc)}</div></div></div>`; }).join('')}</div>
+    <h2>الخطوات والألم على كامل الفترة</h2>${chart({ type: 'bar', w: 900, h: 200, xt: 10, data: all.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), tip: d => `${fD(d.x)}: ${fmt(d.y)}` })}${chart({ type: 'line', w: 900, h: 180, xt: 10, data: all.map(d => { const s = dayStats(d); return { x: d, y: s.painMax, m: s.painMorning }; }), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], tip: d => `${fD(d.x)}: ${d.y ?? '—'} / ${d.m ?? '—'}` })}
+    <h2>الأهداف المتحققة</h2>${goalsDone.length ? `<ul>${goalsDone.map(g => `<li>${esc(g.title)}</li>`).join('')}</ul>` : '<p class="muted">ولا هدف تحقق للحين. الطريق مستمر.</p>'}
+    <h2>الأشعة</h2><div class="xr grid g2">${D.xrays.map(x => `<figure style="margin:0"><img src="${esc(x.file)}" alt="${esc(x.caption)}"><figcaption>${esc(x.caption)}</figcaption></figure>`).join('')}</div>
+    <h2>المراجع</h2><ol class="refs">${REFS.map(([r, u]) => `<li>${esc(r)} <a href="${u}" target="_blank" rel="noopener">رابط</a></li>`).join('')}</ol>
+  </div>`;
+}
+function standalone(inner, title) {
+  const css = $('style').textContent;
+  const base = location.href.replace(/[#?].*$/, '').replace(/[^/]*$/, '');
+  const fixed = inner.replace(/src="(xray-[^"]+)"/g, (m, f) => `src="${base}${f}"`);
+  return `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)} — ${esc(D.profile.name)}</title><style>${css} body{padding:16px} .chart .tip{display:none}</style></head><body>${fixed}<p style="font-size:12px;color:#888;text-align:center;margin-top:16px">من تطبيق رُكبة · ${today()}</p></body></html>`;
+}
+
+/* ================= الإعدادات ================= */
+VIEWS.settings = {
+  html() {
+    const p = D.profile, s = Sync.secrets(), gh = MODE === 'gh';
+    const link = gh && Sync.enabled() && s.gistId ? location.href.replace(/[#?].*$/, '') + '?d=' + s.gistId : '';
+    return `<div class="head"><div><h1>الإعدادات</h1><p>${gh ? 'البيانات محفوظة على هذا الجهاز، وتتزامن بين أجهزتك عن طريق GitHub Gist إذا فعّلته.' : 'البيانات محفوظة بالسحابة وتتزامن تلقائياً.'}</p></div></div>
+    <div class="grid g2" style="align-items:start">
+      <section class="card" style="border-color:var(--accent)"><h2>مركز التقارير والتصدير <span class="badge acc">جديد</span></h2>
+        <p class="sub" style="margin-top:0">كل التقارير بمكان واحد: تقرير الاستشارة، الأسبوعي، التقدم، الرحلة، الإصابة، الالتزام، الأهداف، والبيانات الخام. معاينة، تنزيل HTML، طباعة PDF، أو CSV.</p>
+        <button class="btn primary" data-go="reports">افتح مركز التقارير</button></section>
+      <section class="card"><h2>الملف</h2><div class="grid g2">
+        ${[['name', 'الاسم', 'text'], ['startWeight', 'وزن البداية', 'number'], ['goalWeight', 'الوزن الهدف', 'number'], ['flexionNow', 'زاوية الثني الأولية', 'number'], ['flexionGoal', 'زاوية السجود الهدف', 'number'], ['startDate', 'بداية العلاج', 'date']].map(([k, l, ty]) => `<label class="f">${l}<input type="${ty}" data-pk="${k}" value="${esc(p[k] ?? '')}" ${ty === 'number' ? 'step="any"' : ''}></label>`).join('')}</div></section>
+      <section class="card"><h2>Claude ${AI.ok() ? '<span class="badge ok">مفعّل</span>' : '<span class="badge">غير مفعّل</span>'}</h2>
+        ${!gh ? '<p class="sub" style="margin:0">Claude مربوط تلقائياً هنا لكتابة ملخص التقرير.</p>'
+        : `<p class="sub" style="margin-top:0">اختياري: حتى يكتب Claude ملخص تقرير الاستشارة، الصق مفتاح API من <span class="ltr">console.anthropic.com</span>. محاسبته منفصلة عن اشتراك Claude، والطلب الواحد يكلف أقل من سنت تقريباً. المفتاح يُحفظ على هذا الجهاز بس.</p>
+          <label class="f">مفتاح API<input type="password" id="aKey" dir="ltr" value="${esc(s.apiKey || '')}" placeholder="sk-ant-…"></label>
+          <div class="row" style="margin-top:8px"><button class="btn primary" id="aSave">حفظ وتجربة</button>${s.apiKey ? '<button class="btn" id="aOff">حذف المفتاح</button>' : ''}</div>`}</section>
+      ${gh ? `<section class="card"><h2>المزامنة بين الأجهزة</h2>
+        ${Sync.enabled() ? `<p class="sub" style="margin-top:0">مفعّلة${s.lastSync ? ' · آخر مزامنة ' + new Date(s.lastSync).toLocaleTimeString('ar-IQ-u-nu-latn', { hour: '2-digit', minute: '2-digit' }) : ''}. نفس التوكن ورقم الـ Gist على الآيباد واللابتوب.</p>
+             <div class="row"><button class="btn primary" id="saveNow">زامن الآن</button><button class="btn" id="gOff">إيقاف</button></div>`
+          : `<p class="sub" style="margin-top:0">الصق توكن GitHub (صلاحية gist فقط). إذا عندك Gist من النسخة القديمة الصق رقمه.</p>
+             <label class="f">التوكن<input type="password" id="gTok" dir="ltr" value="${esc(s.token || '')}"></label>
+             <label class="f" style="margin-top:8px">رقم الـ Gist (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}"></label>
+             <div class="row" style="margin-top:8px"><button class="btn primary" id="gOn">فعّل المزامنة</button></div>`}</section>` : ''}
+      <section class="card"><h2>رابط الدكتور</h2>
+        ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يشوف عرض التقدم بس: الرئيسية، والخطة بتمارينها، والسجل، والإصابة. وما يشوف التسجيل ولا الإعدادات.</p>'
+        : link ? `<p class="sub" style="margin-top:0">ابعثه لد. أصيل. يشوف عرض التقدم بس، ويتحدث كل ما تزامن.</p><input type="text" readonly dir="ltr" id="docLink" value="${esc(link)}"><div class="row" style="margin-top:8px"><button class="btn" id="cpLink">انسخ الرابط</button></div>`
+        : '<p class="sub" style="margin:0">فعّل المزامنة أولاً، وبعدها يطلع هنا الرابط.</p>'}</section>
+      <section class="card"><h2>نقل البيانات</h2>
+        <p class="sub" style="margin-top:0">بيانات نسخة رُكبة القديمة على هذا الجهاز انقلت تلقائياً. ولو عندك ملف تصدير من جهاز ثاني، استورده. الدمج ياخذ الأحدث لكل يوم.</p>
+        <div class="row"><label class="btn" for="imp">استيراد ملف</label><input type="file" id="imp" accept=".json,application/json" hidden>${CAP.downloads ? '<button class="btn" id="exp">تصدير نسخة</button>' : ''}${!gh ? `<button class="btn primary" id="saveNow" ${dirty ? '' : 'disabled'}>حفظ الآن</button>` : ''}</div></section>
+    </div>`;
+  },
+  bind(root) {
+    $$('[data-pk]', root).forEach(i => i.onchange = () => { D.profile[i.dataset.pk] = i.type === 'number' ? num(i.value) : i.value; markDirty('cfg'); toast('حُفظ'); });
+    const sn = $('#saveNow', root); if (sn) sn.onclick = () => { manualSave = true; clearTimeout(saveTimer); if (MODE === 'claude') dirty = true; saveCloud(true); };
+    const go = $('#gOff', root); if (go) go.onclick = () => { Sync.setSecrets({ ...Sync.secrets(), on: false }); saveState(); render(); };
+    const gon = $('#gOn', root); if (gon) gon.onclick = async () => {
+      const token = $('#gTok', root).value.trim(), gistId = $('#gId', root).value.trim(); if (!token) { toast('الصق التوكن'); return; }
+      Sync.setSecrets({ ...Sync.secrets(), token, gistId: gistId || Sync.secrets().gistId, on: true }); manualSave = true; await saveCloud(true); render(); };
+    const as = $('#aSave', root); if (as) as.onclick = async () => {
+      const k = $('#aKey', root).value.trim(); if (!k) { toast('الصق المفتاح'); return; }
+      Sync.setSecrets({ ...Sync.secrets(), apiKey: k }); as.disabled = true; as.textContent = 'جاري التجربة…';
+      try { await AI.text('رد بكلمة "تمام" فقط.'); toast('Claude مفعّل'); render(); } catch (e) { toast(AI.err(e)); as.disabled = false; as.textContent = 'حفظ وتجربة'; } };
+    const ao = $('#aOff', root); if (ao) ao.onclick = () => { const s = Sync.secrets(); delete s.apiKey; Sync.setSecrets(s); render(); };
+    const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = $('#docLink', root); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
+    const ex = $('#exp', root); if (ex) ex.onclick = async () => { try { await CAP.downloads.save({ filename: `rukba-data-${today()}.json`, data: JSON.stringify(D, null, 1) }); } catch {} };
+    $('#imp', root).onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => {
+      try { const n = importData(JSON.parse(rd.result)); markDirty('cfg'); toast(`تم دمج ${n} يوم`); render(); }
+      catch { toast('الملف مو نسخة رُكبة صالحة'); } }; rd.readAsText(f); e.target.value = ''; };
+  }
+};
+
+boot();
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+</script>
+
+</body>
+</html>

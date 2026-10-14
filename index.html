@@ -398,6 +398,28 @@ details.more { margin-top: 8px; } details.more summary { cursor: pointer; color:
 
 <script>
 'use strict';
+/* ================= Version Guard (يحمي من SW قديمة) ================= */
+const APP_VERSION = '2.5.0';
+(function() {
+  try {
+    var saved = localStorage.getItem('rukba.app.version');
+    if (saved && saved !== APP_VERSION) {
+      // نسخة جديدة — امسح كل شيء وأعد تحميل
+      localStorage.clear();
+      caches.keys().then(function(keys) {
+        keys.forEach(function(k) { caches.delete(k); });
+      }).catch(function() {});
+      if (navigator.serviceWorker) {
+        navigator.serviceWorker.getRegistrations().then(function(regs) {
+          regs.forEach(function(r) { r.unregister(); });
+        });
+      }
+      location.reload();
+      return;
+    }
+    localStorage.setItem('rukba.app.version', APP_VERSION);
+  } catch(e) {}
+})();
 /* ================= أدوات ================= */
 const $ = (s, el = document) => el.querySelector(s), $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));

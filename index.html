@@ -1640,7 +1640,13 @@ VIEWS.settings = {
 };
 
 boot();
-if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+/* إجباري: ألغِ تسجيل كل Service Workers قديمة قبل تسجيل الجديد */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister().catch(() => {}));
+  }).catch(() => {});
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js?v=2.5.0').catch(() => {}));
+}
 </script>
 
 </body>

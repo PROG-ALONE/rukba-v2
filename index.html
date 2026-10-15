@@ -525,6 +525,7 @@ let D = null;
 let EDIT = true;            // صاحب المتابعة؛ رابط الدكتور للعرض فقط
 let MODE = 'gh';            // gh | claude
 let DOC = null;             // رقم الـ Gist برابط الدكتور
+let DOC_DAY = null;         // يوم مطلوب من رابط الدكتور (?day=) للنزول إليه
 const CAP = { artifact: null, sample: null, downloads: { async save({ filename, data }) {
   const b = data instanceof Blob ? data : new Blob([data], { type: 'application/json' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = filename; document.body.append(a); a.click();
@@ -678,7 +679,7 @@ const Vid = {
     return false;
   },
   // يفتح الكاميرا داخل التطبيق ويسجّل فيديو (MediaRecorder) — يعيد Blob
-  record(maxSec = 30) {
+  record(maxSec = 60) {
     if (!navigator.mediaDevices?.getUserMedia) return this.file();
     return new Promise((resolve, reject) => {
       navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: true })
@@ -798,7 +799,7 @@ async function startRecord(date, exId, btn) {
   const old = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = '…';
   try {
-    const file = await Vid.record(30);
+    const file = await Vid.record(60);
     btn.innerHTML = '⇧'; toast('جاري رفع الفيديو…');
     const meta = await Vid.upload(file);
     attachVideo(date, exId, meta);
@@ -882,15 +883,14 @@ async function boot() {
       if (EDIT && dirty) { clearTimeout(saveTimer); saveTimer = setTimeout(saveCloud, 1500); }
       return;
     }
-    if (DOC) {                                      // رابط الدكتور على GitHub
+    if (DOC) {                                      // رابط الدكتور على GitHub — صفحة واحدة للعرض فقط
       EDIT = false;
       try { const r = await Sync.read(await Sync.api('/gists/' + encodeURIComponent(DOC), {}, false)); if (r) mergeInto(D, r); }
       catch { toast('تعذر جلب آخر البيانات، المعروض نسخة سابقة'); }
-      const dayParam = new URLSearchParams(location.search).get('day');
-      if (dayParam && D.logs?.[dayParam]) { route.tab = 'log'; VIEWS.log.day = dayParam; }
-      else route.tab = 'home';
+      DOC_DAY = new URLSearchParams(location.search).get('day') || null;
+      route.tab = 'dsum';
       setMode(); renderTabs(); render();
-      if (dayParam) setTimeout(() => { const b = $('#dayDetail'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+      if (DOC_DAY) setTimeout(() => { const b = document.getElementById('d-' + DOC_DAY); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 300);
       return;
     }
     const st = ls.get(STORE);
@@ -906,7 +906,7 @@ async function boot() {
 }
 function setMode() {
   const m = $('#mode');
-  m.hidden = EDIT; m.className = 'badge path'; m.textContent = 'عرض التقدم';
+  m.hidden = EDIT; m.className = 'badge path'; m.textContent = DOC ? 'عرض للدكتور' : 'عرض التقدم';
   saveState();
 }
 
@@ -1025,11 +1025,12 @@ const IC = {
   reports: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 9 11"/>',
   gear: '<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>'
 };
-const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k]}</svg>`;
+const ico = k => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[k] || IC.home}</svg>`;
 const TABS = [['home', 'الرئيسية'], ['today', 'اليوم', true], ['plan', 'الخطة'], ['log', 'السجل'], ['injury', 'الإصابة'], ['reports', 'التقارير']];
 function route(tab, arg) { route.tab = tab; route.arg = arg; ls.set('rukba.tab', tab); renderTabs(); render(); scrollTo(0, 0); }
 function renderTabs() {
-  $('#tabs').innerHTML = TABS.filter(t => !t[2] || EDIT).map(([k, l]) => `<button data-tab="${k}" ${route.tab === k ? 'aria-current="page"' : ''}>${ico(k)}<span>${l}</span></button>`).join('');
+  const list = DOC ? [['dsum', 'ملخص للدكتور']] : TABS.filter(t => !t[2] || EDIT);
+  $('#tabs').innerHTML = list.map(([k, l]) => `<button data-tab="${k}" ${route.tab === k ? 'aria-current="page"' : ''}>${ico(k)}<span>${l}</span></button>`).join('');
   $$('#tabs button').forEach(b => b.onclick = () => route(b.dataset.tab));
   const g = $('#gear'); g.hidden = !EDIT; g.innerHTML = ico('gear'); g.toggleAttribute('aria-current', route.tab === 'settings'); g.onclick = () => route('settings');
 }
@@ -1131,11 +1132,14 @@ function render() {
   try {
     const keep = (OV_TAB === route.tab) ? OV_IDX : null;
     closeSections();
-    container.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
+    const banner = DOC
+      ? `<div class="viewer-banner">صفحة عرض للدكتور — ملخص المتابعة والفيديوهات. تُحدَّث تلقائياً كل ما يزامن ${esc(D.profile.name)}.</div>`
+      : (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`);
+    container.innerHTML = banner + V.html(route.arg);
     V.bind && V.bind(container, route.arg); bindCharts(container);
     $$('[data-go]', container).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
     bindYT(container);
-    overview(container);
+    if (!DOC) overview(container);
     if (keep != null) openAt(keep, container);
   } catch (e) { console.error('Render error:', e); container.innerHTML = '<div class="skeleton" style="color:var(--bad)">خطأ في العرض: ' + esc(e.message) + '</div>'; }
 }
@@ -1475,6 +1479,69 @@ function shareDayLink(d) {
     dialog('رابط اليوم للدكتور', `<input type="text" readonly dir="ltr" id="dyl" value="${esc(url)}" style="width:100%">`, [{ label: 'تمام' }]);
   });
 }
+
+/* ================= صفحة عرض الدكتور (رابط واحد · عرض فقط) ================= */
+VIEWS.dsum = {
+  html() {
+    const t = today(), p = D.profile, ph = curPhase();
+    const last30 = range(addDays(t, -29), t), w = windowStats(last30);
+    const ws = series('weight'), wEnd = ws.at(-1)?.y ?? p.startWeight, wDiff = r1(wEnd - p.startWeight);
+    const logged30 = last30.filter(d => D.logs?.[d]).length;
+    // فيديوهات التمارين المسجّلة (الأحدث أولاً)
+    const recs = [];
+    for (const [d, lg] of Object.entries(D.logs || {})) {
+      if (!lg?.ex) continue;
+      const s = dayStats(d);
+      for (const [exId, v] of Object.entries(lg.ex)) {
+        if (!v?.video?.url) continue;
+        const ex = (s.ph ? phaseExFor(s.ph, d) : []).find(x => x.id === exId);
+        recs.push({ d, name: ex?.name || 'تمرين', url: v.video.url });
+      }
+    }
+    recs.sort((a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : 0));
+    const recDays = [...new Set(recs.map(r => r.d))];
+    const vidBlock = !recs.length
+      ? `<section class="card"><h2>فيديوهات التمارين</h2><p class="muted" style="margin:0">لا توجد فيديوهات مسجّلة بعد. يسجّلها ${esc(p.name)} لكل تمرين من التطبيق.</p></section>`
+      : recDays.map(d => {
+          const list = recs.filter(r => r.d === d);
+          return `<section class="card" id="v-${d}" style="margin-top:12px"><h2>${wd(d)} ${fD(d, { day: 'numeric', month: 'long' })} <span class="badge ok">${list.length} فيديو</span></h2>
+            <div class="vids-strip">${list.map(r => `<span class="ex-vid"><a class="vidchip mine" href="${esc(r.url)}" target="_blank" rel="noopener">▶ ${esc(r.name)}</a></span>`).join('')}</div>
+            <div class="vids-strip" style="margin-top:6px">${list.map(r => `<figure style="margin:0;display:flex;flex-direction:column;gap:4px"><video src="${esc(r.url)}" controls preload="metadata"></video><figcaption style="font-size:12px;color:var(--muted);text-align:center">${esc(r.name)}</figcaption></figure>`).join('')}</div></section>`;
+        }).join('');
+    // لو الرابط فيه يوم محدّد (?day=) → نضيف تفاصيل ذلك اليوم كأول قسم
+    const daySec = (DOC_DAY && /^\d{4}-\d{2}-\d{2}$/.test(DOC_DAY))
+      ? `<section class="card" id="d-${DOC_DAY}" style="margin-top:14px"><span class="badge path">تفاصيل اليوم المطلوب</span>${dayDetail(DOC_DAY)}</section>` : '';
+    const planBlock = ph ? phaseBlock(ph, true) : '<p class="muted">لا توجد مرحلة حالية.</p>';
+    // آخر الملاحظات
+    const notes = Object.values(D.logs || {}).filter(l => l?.notes).sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 4)
+      .map(l => `<div style="margin-top:8px"><b>${fD(l.date)}</b> <span class="muted">${esc(l.notes)}</span></div>`).join('');
+    return `<div class="head"><div><h1>ملخص المتابعة</h1><p>${esc(p.name)} · ${esc(p.diagnosis)} · المعالج ${esc(p.therapist)}</p></div>
+        <span class="badge path">آخر بيانات ${fD(t)}</span></div>
+      ${daySec}
+      <div class="grid g4">${[
+        ['الالتزام · 30 يوم', w.adh == null ? '—' : r0(w.adh * 100) + '%', (w.logged.length ? w.logged.length + ' يوم مسجّل' : '')],
+        ['أعلى ألم · 30 يوم', w.painMax < 0 ? '—' : w.painMax, 'الحد ' + (ph?.painLimit ?? '—')],
+        ['معدل الخطوات · 30 يوم', fmt(w.steps), (ph ? 'الهدف ' + fmt(ph.stepTarget) : '')],
+        ['الوزن', fmt(wEnd, 1) + ' كغم', (wDiff === 0 ? 'ثابت' : (wDiff < 0 ? 'نزل ' + Math.abs(wDiff) : 'زاد ' + wDiff) + ' كغم')],
+        ['المرحلة الحالية', ph ? esc(ph.name) : '—', ph ? (D.levels.find(l => l.id === ph.level)?.name || '') : ''],
+        ['أيام مسجّلة · 30 يوم', logged30, ''],
+        ['الخطوات (اليوم)', fmt(D.logs?.[t]?.steps), ''],
+        ['زاوية الثني', curFlex() + '°', 'الهدف ' + (p.flexionGoal ?? '—') + '°']
+      ].map(([l, v, d]) => kpi(l, v, d)).join('')}</div>
+      <div class="grid g2" style="margin-top:14px">
+        <section class="card"><h2>الخطوات · 30 يوم</h2>${chart({ type: 'bar', data: last30.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), refs: [{ y: ph?.stepTarget || 7000, label: fmt(ph?.stepTarget || 7000) }], label: 'الخطوات', tip: d => d.y == null ? fD(d.x) + ': غير مسجل' : `${wd(d.x)} ${fD(d.x)}<br><b>${fmt(d.y)}</b> خطوة` })}</section>
+        <section class="card"><h2>الألم · 30 يوم <span class="legend" style="margin:0"><span><i style="background:var(--series-1)"></i>تمارين</span><span><i style="background:var(--series-2)"></i>صبح</span></span></h2>
+          ${chart({ type: 'line', data: last30.map(d => { const s = dayStats(d); return { x: d, y: s.painMax, m: s.painMorning }; }), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], refs: [{ y: ph?.painLimit ?? 0, label: 'الحد', color: 'var(--ok)' }], label: 'الألم', tip: d => `${fD(d.x)}<br>تمارين ${d.y ?? '—'} · صبح ${d.m ?? '—'}` })}</section>
+      </div>
+      <h2 style="margin:18px 0 0">فيديوهات التمارين <span class="muted">${recs.length}</span></h2>
+      ${vidBlock}
+      <section class="card" style="margin-top:12px"><h2>تمارين المرحلة الحالية <span class="badge">${ph ? esc(ph.name) : '—'}</span></h2>${planBlock}</section>
+      ${notes ? `<section class="card" style="margin-top:12px"><h2>آخر الملاحظات</h2>${notes}</section>` : ''}`;
+  },
+  bind(root) {
+    $$('[data-more]', root).forEach(b => b.onclick = () => { const c = b.closest('.exc'); c.classList.toggle('open'); b.textContent = c.classList.contains('open') ? 'إخفاء' : 'التفاصيل'; });
+  }
+};
 
 /* ================= مركز التقارير ================= */
 VIEWS.reports = {
@@ -2170,15 +2237,15 @@ VIEWS.settings = {
              <label class="f" style="margin-top:8px">رقم الـ Gist أو رابطه (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}" placeholder="abc123… أو رابط gist"></label>
              <div class="row" style="margin-top:8px"><button class="btn primary" id="gOn">فعّل المزامنة</button><a class="btn" href="https://github.com/settings/tokens/new?scopes=repo,gist&description=rukba" target="_blank" rel="noopener">إنشاء توكن</a></div>`}</section>` : ''}
       <section class="card"><h2>رفع الفيديو للدكتور ${Vid.ready() ? '<span class="badge ok">مفعّل</span>' : '<span class="badge">غير مفعّل</span>'}</h2>
-        <p class="sub" style="margin-top:0">لكل تمرين زر ● يصوّر فيديو (20–30 ثانية) ويرفعه لحسابك في <b>GitHub</b>، ويشوفه الدكتور مع رابط اليوم.</p>
+        <p class="sub" style="margin-top:0">لكل تمرين زر ● يصوّر فيديو (حتى دقيقة) ويرفعه لحسابك في <b>GitHub</b>، ويشوفه الدكتور مع رابط اليوم.</p>
         ${Vid.ready() ? `<div class="row"><button class="btn" id="vReset">تغيير الإعداد</button></div>`
         : `<p class="sub">أنشئ توكن GitHub بصلاحية <b>repo</b> والصقه هنا. يتنشأ مستودع <span class="ltr">rukba-videos</span> تلقائياً عند أول تصوير.</p>
            <label class="f">توكن GitHub<input type="password" id="vTok" dir="ltr" placeholder="ghp_…" value="${esc(Sync.secrets().ghToken || '')}"></label>
            <div class="row" style="margin-top:8px"><button class="btn primary" id="vSave">حفظ الإعداد</button><a class="btn" href="https://github.com/settings/tokens/new?scopes=repo&description=rukba-videos" target="_blank" rel="noopener">إنشاء توكن</a></div>`}
       </section>
       <section class="card"><h2>رابط الدكتور</h2>
-        ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يشوف عرض التقدم بس: الرئيسية، والخطة بتمارينها، والسجل، والإصابة. وما يشوف التسجيل ولا الإعدادات.</p>'
-        : link ? `<p class="sub" style="margin-top:0">ابعثه لد. أصيل. يشوف عرض التقدم بس، ويتحدث كل ما تزامن.</p><input type="text" readonly dir="ltr" id="docLink" value="${esc(link)}"><div class="row" style="margin-top:8px"><button class="btn" id="cpLink">انسخ الرابط</button></div>`
+        ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يفتح له صفحة واحدة فيها ملخص المتابعة وفيديوهات التمارين، وما يشوف التسجيل ولا الإعدادات.</p>'
+        : link ? `<p class="sub" style="margin-top:0">ابعثه لد. أصيل. يفتح له <b>صفحة واحدة</b> فيها ملخص المتابعة (الالتزام، الألم، الخطوات، الوزن) و<b>فيديوهات التمارين</b> وتفاصيل المرحلة الحالية. تُحدَّث تلقائياً كل ما تزامن.</p><input type="text" readonly dir="ltr" id="docLink" value="${esc(link)}"><div class="row" style="margin-top:8px"><button class="btn" id="cpLink">انسخ الرابط</button></div>`
         : '<p class="sub" style="margin:0">فعّل المزامنة أولاً، وبعدها يطلع هنا الرابط.</p>'}</section>
       <section class="card"><h2>نقل البيانات</h2>
         <p class="sub" style="margin-top:0">بيانات نسخة رُكبة القديمة على هذا الجهاز انقلت تلقائياً. ولو عندك ملف تصدير من جهاز ثاني، استورده. الدمج ياخذ الأحدث لكل يوم.</p>

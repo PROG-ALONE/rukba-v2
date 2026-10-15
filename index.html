@@ -73,6 +73,8 @@ html, body { height: 100%; overscroll-behavior: none; }
 .tabs button[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
 .tabs button:active { transform: scale(0.98); }
 main { display: flex; flex-direction: column; min-height: 100vh; padding-top: 0; }
+.view-port { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.view-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 16px 16px env(safe-area-inset-bottom, 80px); }
 .head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding-top: 8px; }
 .head h1 { font-size: clamp(22px, 3vw, 30px); }
 .head p { margin: 4px 0 0; color: var(--ink-2); }
@@ -719,10 +721,16 @@ function render() {
   if (!VIEWS[route.tab]) route.tab = 'home';
   if (!EDIT && (route.tab === 'today' || route.tab === 'settings' || route.tab === 'reports')) route.tab = 'home';
   for (const k in CH) delete CH[k];
-  const container = $('.view-content', $('#main')); const V = VIEWS[route.tab];
-  container.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
-  V.bind && V.bind(container, route.arg); bindCharts(container);
-  $$('[data-go]', container).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
+  const mainEl = $('#main');
+  const container = $('.view-content', mainEl);
+  if (!container) { console.error('container not found'); return; }
+  const V = VIEWS[route.tab];
+  if (!V || !V.html) { console.error('View not found:', route.tab); return; }
+  try {
+    container.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
+    V.bind && V.bind(container, route.arg); bindCharts(container);
+    $$('[data-go]', container).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
+  } catch (e) { console.error('Render error:', e); container.innerHTML = '<div class="skeleton" style="color:var(--bad)">خطأ في العرض: ' + esc(e.message) + '</div>'; }
 }
 function dialog(title, body, actions) {
   const dl = document.createElement('dialog'); dl.innerHTML = `<div class="dh">${esc(title)}</div><div class="db">${body}</div><div class="df"></div>`;

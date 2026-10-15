@@ -2144,7 +2144,8 @@ VIEWS.settings = {
           <div class="row" style="margin-top:8px"><button class="btn primary" id="aSave">حفظ وتجربة</button>${s.apiKey ? '<button class="btn" id="aOff">حذف المفتاح</button>' : ''}</div>`}</section>
       ${gh ? `<section class="card"><h2>المزامنة بين الأجهزة</h2>
         ${Sync.enabled() ? `<p class="sub" style="margin-top:0">مفعّلة${s.lastSync ? ' · آخر مزامنة ' + new Date(s.lastSync).toLocaleTimeString('ar-IQ-u-nu-latn', { hour: '2-digit', minute: '2-digit' }) : ''}. نفس التوكن ورقم الـ Gist على الآيباد واللابتوب.</p>
-             <div class="row"><button class="btn primary" id="saveNow">زامن الآن</button><button class="btn" id="gOff">إيقاف</button></div>`
+             <label class="f">رقم الـ Gist (انسخه للأجهزة الثانية)<input type="text" id="gIdShow" readonly dir="ltr" value="${esc(s.gistId || '')}"></label>
+             <div class="row" style="margin-top:8px"><button class="btn primary" id="saveNow">زامن الآن</button><button class="btn" id="gCopy">انسخ الرقم</button><button class="btn" id="gOff">إيقاف</button></div>`
           : `<p class="sub" style="margin-top:0">الصق توكن GitHub فيه صلاحية <b>gist</b>. إذا عندك Gist من جهاز ثاني، الصق رقمه أو رابطه الكامل. (نفس التوكن يشتغل للفيديو لو أضفت له صلاحية repo.)</p>
              <label class="f">توكن GitHub (صلاحية gist)<input type="password" id="gTok" dir="ltr" value="${esc(s.token || '')}" placeholder="ghp_…"></label>
              <label class="f" style="margin-top:8px">رقم الـ Gist أو رابطه (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}" placeholder="abc123… أو رابط gist"></label>
@@ -2171,6 +2172,7 @@ VIEWS.settings = {
     $$('[data-pk]', root).forEach(i => i.onchange = () => { D.profile[i.dataset.pk] = i.type === 'number' ? num(i.value) : i.value; markDirty('cfg'); toast('حُفظ'); });
     const sn = $('#saveNow', root); if (sn) sn.onclick = () => { manualSave = true; clearTimeout(saveTimer); if (MODE === 'claude') dirty = true; saveCloud(true); };
     const go = $('#gOff', root); if (go) go.onclick = () => { Sync.setSecrets({ ...Sync.secrets(), on: false }); saveState(); render(); };
+    const gc = $('#gCopy', root); if (gc) gc.onclick = async () => { const i = fld(gc, '#gIdShow'); try { await navigator.clipboard.writeText(i.value); toast('انسخ ✓'); } catch { i.select(); } };
     const gon = $('#gOn', root); if (gon) gon.onclick = async () => {
       const token = fld(gon, '#gTok').value.trim(); let gistId = normGistId(fld(gon, '#gId').value);
       if (!token) { toast('الصق التوكن'); return; }

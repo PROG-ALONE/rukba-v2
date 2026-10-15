@@ -1028,7 +1028,7 @@ VIEWS.reports = {
       </div>
       <p class="muted" style="margin:8px 0 0">الطباعة تفتح نافذة المتصفح، واختر منها «حفظ كـ PDF». التنزيل يحفظ ملف HTML مستقل يفتح بأي متصفح ويشتغل بلا إنترنت.</p>
     </section>
-    ${V.preview ? `<section class="card" id="rcPrevBox"><h2>4 · معاينة</h2><div id="rcRep">${reportFor(V.kind, V.from, V.to)}</div></section>` : ''}`;
+    ${V.preview ? `<section class="card" id="rcPrevBox"><div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px"><h2 style="margin:0">4 · معاينة</h2><button class="btn ghost sm" id="rcClosePreview">✕ إغلاق</button></div><div id="rcRep">${reportFor(V.kind, V.from, V.to)}</div></section>` : ''}`;
   },
   bind(root) {
     const V = VIEWS.reports;
@@ -1048,6 +1048,7 @@ VIEWS.reports = {
       } catch (e) { toast(AI.err(e)); ai.disabled = false; ai.textContent = '✦ ملخص بـ Claude'; }
     };
     $('#rcPreview', root).onclick = () => render();
+    $('#rcClosePreview', root).onclick = () => { V.preview = false; render(); };
     const dl = $('#rcDownload', root); if (dl) dl.onclick = () => exportReport(V.kind, V.from, V.to, V.output);
     const pr = $('#rcPrint', root); if (pr) pr.onclick = () => printReport(V.kind, V.from, V.to);
     const cs = $('#rcCsv', root); if (cs) cs.onclick = () => exportCSV(V.from, V.to);

@@ -2,7 +2,11 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0b6e6e">
 <meta name="theme-color" content="#0b6e6e">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -41,7 +45,8 @@
   --bone: #5c5240; --bone-line: #c2ad80; --muscle: #8f4a43; --muscle-line: #e0857a; --tendon: #6c6247; --tendon-line: #d9c18a; --nerve: #f0c93f; --skin: #4a3a31;
   --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; color-scheme: dark; }
 * { box-sizing: border-box; }
-body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15.5px; line-height: 1.65; margin: 0; }
+html, body { height: 100%; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15.5px; line-height: 1.65; margin: 0; touch-action: manipulation; -webkit-touch-callout: none; -webkit-user-select: none; -khtml-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
 body { direction: rtl; }
 a { color: var(--accent); }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -51,8 +56,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 h1, h2, h3 { font-family: var(--f-display); line-height: 1.35; text-wrap: balance; margin: 0; }
 
 /* ---------- الهيكل ---------- */
-.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--bg) 90%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-.top-in { max-width: 1180px; margin: 0 auto; padding: 10px 16px 0; }
+html, body { height: 100%; overscroll-behavior: none; }
+.top { position: fixed; top: 0; left: 0; right: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 95%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
+.top-in { max-width: 100%; margin: 0 auto; padding: env(safe-area-inset-top, 0px) 16px 0; }
 .brandrow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand b { font-family: var(--f-display); font-size: 22px; font-weight: 800; }
@@ -61,12 +67,13 @@ h1, h2, h3 { font-family: var(--f-display); line-height: 1.35; text-wrap: balanc
 .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--ink-2); white-space: nowrap; }
 .badge.ok { background: var(--ok-soft); color: var(--ok); } .badge.warn { background: var(--warn-soft); color: var(--warn); } .badge.bad { background: var(--bad-soft); color: var(--bad); } .badge.acc { background: var(--accent-soft); color: var(--accent); } .badge.path { background: var(--path-soft); color: var(--path); }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-.tabs { display: flex; gap: 4px; overflow-x: auto; padding: 10px 0 8px; scrollbar-width: none; }
+.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 40; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; gap: 4px; padding: 8px 16px; overflow-x: auto; scrollbar-width: none; }
 .tabs::-webkit-scrollbar { display: none; }
-.tabs button { border: 0; background: transparent; padding: 7px 14px; border-radius: 10px; white-space: nowrap; cursor: pointer; color: var(--ink-2); font-weight: 500; }
-.tabs button[aria-current="page"] { background: var(--ink); color: var(--bg); font-weight: 600; }
-main { max-width: 1180px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 80px; }
-.head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.tabs button { border: 0; background: transparent; padding: 8px 16px; border-radius: 12px; white-space: nowrap; cursor: pointer; color: var(--ink-2); font-weight: 600; font-size: 13px; transition: background .2s, color .2s; }
+.tabs button[aria-current="page"] { background: var(--accent); color: var(--accent-ink); }
+.tabs button:active { transform: scale(0.98); }
+main { display: flex; flex-direction: column; min-height: 100vh; padding-top: 0; }
+.head { display: flex; justify-content: space-between; align-items: end; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; padding-top: 8px; }
 .head h1 { font-size: clamp(22px, 3vw, 30px); }
 .head p { margin: 4px 0 0; color: var(--ink-2); }
 
@@ -394,7 +401,7 @@ details.more { margin-top: 8px; } details.more summary { cursor: pointer; color:
   </div>
   <nav class="tabs" id="tabs" aria-label="الأقسام"></nav>
 </div></header>
-<main id="main"><div class="skeleton">جاري تحميل بيانات المتابعة…</div></main>
+<main id="main" class="view-port"><div class="view-content"><div class="skeleton">جاري تحميل بيانات المتابعة…</div></div></main>
 
 <script>
 'use strict';
@@ -712,10 +719,10 @@ function render() {
   if (!VIEWS[route.tab]) route.tab = 'home';
   if (!EDIT && (route.tab === 'today' || route.tab === 'settings' || route.tab === 'reports')) route.tab = 'home';
   for (const k in CH) delete CH[k];
-  const main = $('#main'); const V = VIEWS[route.tab];
-  main.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
-  V.bind && V.bind(main, route.arg); bindCharts(main);
-  $$('[data-go]', main).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
+  const container = $('.view-content', $('#main')); const V = VIEWS[route.tab];
+  container.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
+  V.bind && V.bind(container, route.arg); bindCharts(container);
+  $$('[data-go]', container).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
 }
 function dialog(title, body, actions) {
   const dl = document.createElement('dialog'); dl.innerHTML = `<div class="dh">${esc(title)}</div><div class="db">${body}</div><div class="df"></div>`;

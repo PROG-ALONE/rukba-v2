@@ -106,6 +106,23 @@ main { display: flex; flex-direction: column; min-height: 100vh; padding-top: 0;
 .sheet-item .si-ar { flex: 0 0 auto; color: var(--muted); font-size: 15px; }
 .card.flash { animation: cardFlash 1.6s ease; }
 @keyframes cardFlash { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 20%, 60% { box-shadow: 0 0 0 3px var(--accent); } }
+
+/* ---------- تسجيل الفيديو ---------- */
+.rec-wrap { position: relative; background: #000; border-radius: 14px; overflow: hidden; aspect-ratio: 9/16; max-height: 46vh; margin: 0 auto; }
+.rec-prev { width: 100%; height: 100%; object-fit: cover; display: block; }
+.rec-timer { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,.6); color: #fff; font: 600 13px/1 var(--f-body); padding: 5px 10px; border-radius: 999px; display: none; }
+.rec-timer.on { display: block; }
+.rec-timer.live::before { content: ''; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f44; margin-inline-end: 6px; vertical-align: middle; animation: recPulse 1s infinite; }
+@keyframes recPulse { 50% { opacity: .3; } }
+.rec-bar { display: flex; gap: 10px; justify-content: center; padding: 12px 16px 4px; }
+.ex-vid { display: inline-flex; align-items: center; gap: 6px; }
+.ex-vid a { display: inline-flex; align-items: center; gap: 4px; }
+.vidchip { display: inline-flex; align-items: center; gap: 5px; background: var(--accent-soft); color: var(--accent); border-radius: 999px; padding: 3px 10px; font-size: 12.5px; font-weight: 600; text-decoration: none; }
+.vidchip.mine { background: var(--ok-soft); color: var(--ok); }
+.recbtn { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); color: var(--bad); cursor: pointer; display: grid; place-items: center; font-size: 17px; }
+.recbtn:active { transform: scale(.94); }
+.vids-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.vids-strip video { width: 140px; border-radius: 10px; background: #000; }
 .sub { color: var(--ink-2); } .muted { color: var(--muted); font-size: 13.5px; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .stack { display: flex; flex-direction: column; gap: 14px; }
@@ -535,6 +552,93 @@ const Sync = {
   },
   async read(j) { const f = j.files?.[GFILE]; if (!f) return null; return JSON.parse(f.truncated ? await (await fetch(f.raw_url, { cache: 'no-store' })).text() : f.content); }
 };
+
+/* ================= الفيديو (رفع لخدمة خارجية) ================= */
+const Vid = {
+  cfg() { const s = Sync.secrets(); return { cloud: s.cloud, preset: s.preset }; },
+  ready() { const c = this.cfg(); return !!(c.cloud && c.preset); },
+  async upload(file) {
+    const c = this.cfg();
+    if (!c.cloud || !c.preset) throw new Error('NO_CFG');
+    if (file.size > 100 * 1024 * 1024) throw new Error('BIG');
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', c.preset);
+    fd.append('resource_type', 'video');
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(c.cloud)}/video/upload`, { method: 'POST', body: fd });
+    if (!res.ok) { let m = 'فشل الرفع'; try { m = (await res.json()).error?.message || m; } catch {} throw new Error(m); }
+    const j = await res.json();
+    return { url: j.secure_url, publicId: j.public_id };
+  },
+  // يلتقط فيديو من الكاميرا أو من ملف، ويعيد Blob
+  async pick(source) {
+    if (source === 'file') {
+      return new Promise((resolve, reject) => {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'video/*';
+        inp.onchange = () => { const f = inp.files?.[0]; f ? resolve(f) : reject(new Error('ملف')); };
+        inp.oncancel = () => reject(new Error('ألغيت'));
+        document.body.append(inp); inp.click();
+        setTimeout(() => inp.remove(), 1500);
+      });
+    }
+    // كاميرا مباشرة عبر input capture (الأبسط والأكثر توافقاً على الجوال)
+    return new Promise((resolve, reject) => {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = 'video/*'; inp.setAttribute('capture', 'environment');
+      inp.onchange = () => { const f = inp.files?.[0]; f ? resolve(f) : reject(new Error('ملف')); };
+      inp.oncancel = () => reject(new Error('ألغيت'));
+      document.body.append(inp); inp.click();
+      setTimeout(() => inp.remove(), 1500);
+    });
+  }
+};
+// يحفظ رابط الفيديو على تمرين في يوم معيّن
+function attachVideo(date, exId, meta) {
+  const log = D.logs[date] || (D.logs[date] = { date, ex: {} });
+  log.ex = log.ex || {};
+  const v = log.ex[exId] || { d: null, p: null };
+  v.video = meta;                       // { url, publicId }
+  log.ex[exId] = v;
+  log.updatedAt = Date.now();
+  markDirty();
+}
+function videosOf(date, exId) {
+  const v = D.logs?.[date]?.ex?.[exId];
+  return v?.video ? [v.video] : [];
+}
+async function startRecord(date, exId, btn) {
+  if (!EDIT) return;
+  if (!Vid.ready()) {          // لم يُضبط رفع الفيديو بعد → افتح الإعدادات
+    dialog('إعداد رفع الفيديو',
+      `<p class="sub" style="margin-top:0">الفيديوهات ترفع لخدمة <b>Cloudinary</b> (مجانية) ويظهر رابطها للدكتور عبر رابط اليوم.</p>
+       <p class="sub">1) سجّل في <a href="https://cloudinary.com/users/register/free" target="_blank" rel="noopener">cloudinary.com</a><br>2) من <b>Settings → Upload → Add upload preset</b> (اختر <i>Unsigned</i>)<br>3) انسخ <b>Cloud name</b> واسم الـ <b>Preset</b> وضعهما بالأسفل.</p>
+       <label class="f">Cloud name<input type="text" id="vc" dir="ltr" placeholder="e.g. dq0m7xyz" value="${esc(Sync.secrets().cloud || '')}"></label>
+       <label class="f" style="margin-top:8px">Upload preset<input type="text" id="vp" dir="ltr" placeholder="e.g. rukba_vids" value="${esc(Sync.secrets().preset || '')}"></label>`,
+      [{ label: 'لاحقاً' }, { label: 'حفظ', cls: 'primary', run: dl => {
+        const c = $('#vc', dl).value.trim(), p = $('#vp', dl).value.trim();
+        if (!c || !p) { toast('أكمل الحقلين'); return false; }
+        Sync.setSecrets({ ...Sync.secrets(), cloud: c, preset: p }); toast('حُفظ. جرّب التصوير الآن');
+      } }]);
+    return;
+  }
+  const old = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '…';
+  try {
+    const file = await Vid.pick(navigator.mediaDevices?.getUserMedia ? 'camera' : 'file');
+    btn.innerHTML = '⇧'; toast('جاري رفع الفيديو…');
+    const meta = await Vid.upload(file);
+    attachVideo(date, exId, meta);
+    toast('انحفظ الفيديو ✓');
+    const y = scrollY; render(); scrollTo(0, y);
+  } catch (e) {
+    const m = String(e.message || e);
+    if (m === 'ألغيت' || m === 'ملف') { /* صامت */ }
+    else if (m === 'NO_CFG') startRecord(date, exId, btn);
+    else if (m === 'BIG') toast('الفيديو أكبر من 100MB — قصّر المدة');
+    else toast('ما صار الرفع: ' + m);
+  } finally { btn.disabled = false; btn.innerHTML = old; }
+}
 async function saveCloud(rerender) {
   if (!EDIT || saving) return;
   if (MODE === 'claude') {
@@ -606,7 +710,12 @@ async function boot() {
       EDIT = false;
       try { const r = await Sync.read(await Sync.api('/gists/' + encodeURIComponent(DOC), {}, false)); if (r) mergeInto(D, r); }
       catch { toast('تعذر جلب آخر البيانات، المعروض نسخة سابقة'); }
-      route.tab = 'home'; setMode(); renderTabs(); render(); return;
+      const dayParam = new URLSearchParams(location.search).get('day');
+      if (dayParam && D.logs?.[dayParam]) { route.tab = 'log'; VIEWS.log.day = dayParam; }
+      else route.tab = 'home';
+      setMode(); renderTabs(); render();
+      if (dayParam) setTimeout(() => { const b = $('#dayDetail'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 200);
+      return;
     }
     const st = ls.get(STORE);
     if (st) { try { mergeInto(D, JSON.parse(st)); } catch {} }
@@ -999,8 +1108,10 @@ VIEWS.today = {
       <section class="card"><h2>التمارين ${sessBadge}</h2>
         ${rest ? `<div class="note" style="margin-bottom:10px"><b>يوم راحة.</b> العضلة والوتر يبنون وقت الراحة، مو وقت التمرين. امشِ بشكل عادي، وسجّل الخطوات والألم إذا حبيت. التمرين الجاي: <b>${SESSION_FULL[nextRole] || ''}</b>.</div>` : ''}
         ${exs.length ? `<div class="row" style="margin-bottom:4px"><button class="btn sm" id="allDone">أنجزت الكل</button><span class="muted">ضغطة = تم · ضغطتين = ما سويته · ثلاث = بدون تسجيل</span></div>` : (rest ? '' : '<p class="muted">لا توجد مرحلة بهذا التاريخ.</p>')}
-        ${exs.map(e => { const v = log.ex?.[e.id] || {}; const s = v.d === true ? 'done' : v.d === false ? 'skip' : 'none'; return `<div class="ex-row" data-ex="${e.id}"><button class="chk" data-s="${s}" aria-label="${esc(e.name)}">${s === 'skip' ? '✕' : '✓'}</button>
-          <div><div class="ex-n">${esc(e.name)}</div><div class="ex-m"><span class="num">${esc(e.dose)}</span>${e.ar ? ' · ' + esc(e.ar) : ''}${e.video ? ` · <a href="${esc(e.video)}" target="_blank" rel="noopener">فيديو</a>` : ''}</div></div>
+        ${exs.map(e => { const v = log.ex?.[e.id] || {}; const s = v.d === true ? 'done' : v.d === false ? 'skip' : 'none'; const mine = v.video; return `<div class="ex-row" data-ex="${e.id}"><button class="chk" data-s="${s}" aria-label="${esc(e.name)}">${s === 'skip' ? '✕' : '✓'}</button>
+          <div style="flex:1;min-width:0"><div class="ex-n">${esc(e.name)}</div><div class="ex-m"><span class="num">${esc(e.dose)}</span>${e.ar ? ' · ' + esc(e.ar) : ''}${e.video ? ` · <a href="${esc(e.video)}" target="_blank" rel="noopener">فيديو مرجعي</a>` : ''}</div>
+          ${mine ? `<div class="ex-vid" style="margin-top:5px"><a class="vidchip mine" href="${esc(mine.url)}" target="_blank" rel="noopener">▶ تسجيلي</a><button class="btn sm ghost" data-rep="${e.id}" style="padding:2px 8px;font-size:12px">إعادة</button></div>` : ''}</div>
+          <button class="recbtn" data-rec="${e.id}" aria-label="تصوير ${esc(e.name)}" title="تصوير فيديو">●</button>
           <select aria-label="ألم ${esc(e.name)}" style="width:86px;margin:0"><option value="">ألم —</option>${Array.from({ length: 11 }, (_, i) => `<option value="${i}" ${v.p === i ? 'selected' : ''}>ألم ${i}</option>`).join('')}</select></div>`; }).join('')}
       </section>
       <div class="stack">
@@ -1024,7 +1135,10 @@ VIEWS.today = {
     $$('[data-d]', root).forEach(b => b.onclick = () => route('today', b.dataset.d)); $('#dPick').onchange = e => e.target.value && route('today', e.target.value);
     $$('.ex-row', root).forEach(r => { const id = r.dataset.ex;
       $('.chk', r).onclick = () => { const v = log.ex[id] || { d: null, p: null }; v.d = v.d == null ? true : v.d === true ? false : null; log.ex[id] = v; commit(true); };
-      $('select', r).onchange = e => { const v = log.ex[id] || { d: null, p: null }; v.p = num(e.target.value); log.ex[id] = v; commit(); }; });
+      $('select', r).onchange = e => { const v = log.ex[id] || { d: null, p: null }; v.p = num(e.target.value); log.ex[id] = v; commit(); };
+      const rb = $('[data-rec]', r), rp = $('[data-rep]', r);
+      if (rb) rb.onclick = () => startRecord(d, id, rb);
+      if (rp) rp.onclick = () => startRecord(d, id, rp); });
     const ad = $('#allDone', root); if (ad) ad.onclick = () => { phaseExFor(ph, d).forEach(e => log.ex[e.id] = { ...(log.ex[e.id] || { p: null }), d: true }); commit(true); };
     $$('[data-scale]', root).forEach(w => { const k = w.dataset.scale; $$('button', w).forEach(b => b.onclick = () => { const v = +b.dataset.v; log[k] = log[k] === v ? null : v; $$('button', w).forEach(x => { const on = +x.dataset.v === log[k]; x.setAttribute('aria-pressed', on); x.style.background = on ? painCol(+x.dataset.v, lim) : ''; }); $('[data-val]', w).textContent = log[k] ?? '—'; commit(); }); });
     for (const k of ['steps', 'weight', 'sleep', 'flexion']) $('#' + k).onchange = e => { log[k] = num(e.target.value); commit(); };
@@ -1038,9 +1152,19 @@ VIEWS.today = {
 /* ================= السجل والتقارير ================= */
 function dayDetail(d) {
   const s = dayStats(d);
-  return `<h2>${wd(d)} ${fD(d, { day: 'numeric', month: 'long' })} ${EDIT ? `<button class="btn sm" data-go="today" data-arg="${d}">تعديل</button>` : ''}${s.rest ? ' <span class="badge">يوم راحة</span>' : (s.ph && hasSchedule(s.ph) ? ` <span class="badge acc">${SESSION_LABEL[phaseSession(s.ph, d)] || ''}</span>` : '')}</h2>
+  // فيديوهات اليوم المسجلة لكل تمرين
+  const vids = [];
+  const lg = D.logs?.[d];
+  if (lg?.ex) for (const [exId, v] of Object.entries(lg.ex)) if (v?.video?.url) {
+    const ex = (s.ph ? phaseExFor(s.ph, d) : []).find(x => x.id === exId);
+    vids.push({ url: v.video.url, name: ex?.name || 'تمرين' });
+  }
+  const shareDay = EDIT && Sync.secrets().gistId ? `<button class="btn sm" data-shareday="${d}" style="margin-inline-start:8px">🔗 رابط هذا اليوم للدكتور</button>` : '';
+  return `<h2>${wd(d)} ${fD(d, { day: 'numeric', month: 'long' })} ${EDIT ? `<button class="btn sm" data-go="today" data-arg="${d}">تعديل</button>${shareDay}` : ''}${s.rest ? ' <span class="badge">يوم راحة</span>' : (s.ph && hasSchedule(s.ph) ? ` <span class="badge acc">${SESSION_LABEL[phaseSession(s.ph, d)] || ''}</span>` : '')}</h2>
     ${s.ph ? `<div class="tiles">${[['التمارين', s.rest ? 'راحة' : `${s.done}/${s.planned}`], ['الخطوات', fmt(s.log?.steps)], ['ألم التمارين', s.painMax ?? '—', painCol(s.painMax, s.limit)], ['ألم الصبح', s.painMorning ?? '—', painCol(s.painMorning, s.limit)]].map(([l, v, c]) => `<div class="tile"><span>${l}</span><b style="${c ? 'color:' + c : ''}">${v}</b></div>`).join('')}</div>
     ${!s.rest ? `<div class="exdots">${phaseExFor(s.ph, d).map(e => { const v = s.log?.ex?.[e.id]; return `<span class="xd ${v?.d === true ? 'y' : v?.d === false ? 'n' : ''}" title="${esc(e.name)}">${esc(e.short || e.name.slice(0, 3))}</span>`; }).join('')}</div>` : ''}` : '<p class="muted">قبل بداية العلاج.</p>'}
+    ${vids.length ? `<div class="vids-strip">${vids.map(v => `<span class="ex-vid"><a class="vidchip mine" href="${esc(v.url)}" target="_blank" rel="noopener">▶ ${esc(v.name)}</a></span>`).join('')}</div>
+      <div class="vids-strip" style="margin-top:6px">${vids.map(v => `<video src="${esc(v.url)}" controls preload="metadata"></video>`).join('')}</div>` : ''}
     ${s.log?.notes ? `<p dir="auto" class="dnote">${esc(s.log.notes)}</p>` : '<p class="muted" style="margin:6px 0 0">لا توجد ملاحظات.</p>'}`;
 }
 function calHtml() {
@@ -1077,7 +1201,9 @@ VIEWS.log = {
     const V = VIEWS.log;
     $$('[data-mo]', root).forEach(b => b.onclick = () => { if (b.dataset.mo) { V.month = b.dataset.mo; render(); } });
     const box = $('#dayDetail', root);
-    const show = (d, pin) => { if (pin) V.day = d; box.innerHTML = dayDetail(d); $$('[data-go]', box).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg)); };
+    const bindShare = scope => $$('[data-shareday]', scope).forEach(b => b.onclick = () => shareDayLink(b.dataset.shareday));
+    bindShare(root);
+    const show = (d, pin) => { if (pin) V.day = d; box.innerHTML = dayDetail(d); $$('[data-go]', box).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg)); bindShare(box); };
     $$('[data-day]', root).forEach(b => {
       b.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') show(b.dataset.day); });
       b.onclick = () => { $$('.cal .sel', root).forEach(x => x.classList.remove('sel')); b.classList.add('sel'); show(b.dataset.day, true); if (innerWidth < 620) box.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
@@ -1085,6 +1211,14 @@ VIEWS.log = {
     $('.cal', root).addEventListener('pointerleave', () => show(V.day));
   }
 };
+function shareDayLink(d) {
+  const gid = Sync.secrets().gistId;
+  if (!gid) { toast('فعّل المزامنة أولاً حتى يشتغل الرابط'); return; }
+  const url = `${location.origin}${location.pathname}?d=${gid}&day=${d}`;
+  navigator.clipboard?.writeText(url).then(() => toast('نُسخ رابط اليوم ✓')).catch(() => {
+    dialog('رابط اليوم للدكتور', `<input type="text" readonly dir="ltr" id="dyl" value="${esc(url)}" style="width:100%">`, [{ label: 'تمام' }]);
+  });
+}
 
 /* ================= مركز التقارير ================= */
 VIEWS.reports = {
@@ -1778,6 +1912,13 @@ VIEWS.settings = {
              <label class="f">التوكن<input type="password" id="gTok" dir="ltr" value="${esc(s.token || '')}"></label>
              <label class="f" style="margin-top:8px">رقم الـ Gist (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}"></label>
              <div class="row" style="margin-top:8px"><button class="btn primary" id="gOn">فعّل المزامنة</button></div>`}</section>` : ''}
+      <section class="card"><h2>رفع الفيديو للدكتور ${Vid.ready() ? '<span class="badge ok">مفعّل</span>' : '<span class="badge">غير مفعّل</span>'}</h2>
+        <p class="sub" style="margin-top:0">لكل تمرين زر ● يصوّر فيديو (20–30 ثانية) ويرفعه لـ Cloudinary، ويشوفه الدكتور مع رابط اليوم.</p>
+        ${Vid.ready() ? `<div class="row"><button class="btn" id="vReset">تغيير الإعداد</button></div>`
+        : `<label class="f">Cloud name<input type="text" id="vCloud" dir="ltr" placeholder="e.g. dq0m7xyz" value="${esc(Sync.secrets().cloud || '')}"></label>
+           <label class="f" style="margin-top:8px">Upload preset (unsigned)<input type="text" id="vPreset" dir="ltr" placeholder="e.g. rukba_vids" value="${esc(Sync.secrets().preset || '')}"></label>
+           <div class="row" style="margin-top:8px"><button class="btn primary" id="vSave">حفظ الإعداد</button><a class="btn" href="https://cloudinary.com/users/register/free" target="_blank" rel="noopener">إنشاء حساب مجاني</a></div>`}
+      </section>
       <section class="card"><h2>رابط الدكتور</h2>
         ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يشوف عرض التقدم بس: الرئيسية، والخطة بتمارينها، والسجل، والإصابة. وما يشوف التسجيل ولا الإعدادات.</p>'
         : link ? `<p class="sub" style="margin-top:0">ابعثه لد. أصيل. يشوف عرض التقدم بس، ويتحدث كل ما تزامن.</p><input type="text" readonly dir="ltr" id="docLink" value="${esc(link)}"><div class="row" style="margin-top:8px"><button class="btn" id="cpLink">انسخ الرابط</button></div>`
@@ -1800,6 +1941,12 @@ VIEWS.settings = {
       try { await AI.text('رد بكلمة "تمام" فقط.'); toast('Claude مفعّل'); render(); } catch (e) { toast(AI.err(e)); as.disabled = false; as.textContent = 'حفظ وتجربة'; } };
     const ao = $('#aOff', root); if (ao) ao.onclick = () => { const s = Sync.secrets(); delete s.apiKey; Sync.setSecrets(s); render(); };
     const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = $('#docLink', root); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
+    const vs = $('#vSave', root); if (vs) vs.onclick = () => {
+      const c = $('#vCloud', root).value.trim(), p = $('#vPreset', root).value.trim();
+      if (!c || !p) { toast('أكمل الحقلين'); return; }
+      Sync.setSecrets({ ...Sync.secrets(), cloud: c, preset: p }); toast('حُفظ إعداد الفيديو ✓'); render();
+    };
+    const vr = $('#vReset', root); if (vr) vr.onclick = () => { const s = Sync.secrets(); delete s.cloud; delete s.preset; Sync.setSecrets(s); render(); };
     const ex = $('#exp', root); if (ex) ex.onclick = async () => { try { await CAP.downloads.save({ filename: `rukba-data-${today()}.json`, data: JSON.stringify(D, null, 1) }); } catch {} };
     $('#imp', root).onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => {
       try { const n = importData(JSON.parse(rd.result)); markDirty('cfg'); toast(`تم دمج ${n} يوم`); render(); }

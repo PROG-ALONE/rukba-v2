@@ -593,14 +593,26 @@ function normGistId(v) {
   const u = v.match(/gist\.github\.com\/(?:[^/]+\/)?([0-9a-fA-F]+)/); if (u) return u[1];
   const h = v.match(/[0-9a-fA-F]{16,}/); return h ? h[0] : v;
 }
+// يفحص التوكن قبل الحفظ. hard=أكيد غلط (401)، صفر hard يعني ما قدرنا نفحص (شبكة/زمن) فنسمح بالحفظ
+async function probeTok(token) {
+  try { return { ok: true, ...(await Sync.check(token)) }; }
+  catch (e) { const m = String(e.message || e); return { ok: false, hard: m.includes('غير صحيح'), msg: m }; }
+}
 
 /* ================= الفيديو (رفع لخدمة خارجية) ================= */
 const Vid = {
-  cfg() { const s = Sync.secrets(); return { cloud: s.cloud, preset: s.preset, ghToken: s.ghToken, ghRepo: s.ghRepo, ghOwner: s.ghOwner }; },
+  cfg() { const s = Sync.secrets(); return { cloud: s.cloud, preset: s.preset, ghToken: s.ghToken || s.token, ghRepo: s.ghRepo, ghOwner: s.ghOwner }; },
   ready() { const c = this.cfg(); return !!(c.ghToken || (c.cloud && c.preset)); },
   async upload(file) {
     const c = this.cfg();
-    if (c.ghToken) return this.uploadGH(file, c);
+    if (c.ghToken) {
+      try { return await this.uploadGH(file, c); }
+      catch (e) {   // توكن الفيديو منتهي؟ جرّب توكن المزامنة (لو مختلف) قبل ما تفشل
+        const alt = Sync.secrets().token;
+        if (e.code === 'bad_token' && alt && alt !== c.ghToken) return this.uploadGH(file, { ...c, ghToken: alt, ghOwner: undefined });
+        throw e;
+      }
+    }
     if (c.cloud && c.preset) return this.uploadCF(file, c);
     throw new Error('NO_CFG');
   },
@@ -621,12 +633,14 @@ const Vid = {
   async uploadGH(file, c) {
     if (file.size > 90 * 1024 * 1024) throw new Error('BIG');
     const tok = c.ghToken;
+    const clearTok = () => { const s = Sync.secrets(); delete s.ghToken; delete s.ghOwner; delete s.ghRepo; Sync.setSecrets(s); };
+    const bad = () => { clearTok(); const e = new Error('التوكن غير صحيح أو منتهي — افتح ⚙ الإعدادات وأعد لصق التوكن'); e.code = 'bad_token'; return e; };
     const gh = (p, opt = {}) => fetch('https://api.github.com' + p, { ...opt, cache: 'no-store',
       headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', Authorization: 'Bearer ' + tok, ...(opt.body ? { 'Content-Type': 'application/json' } : {}) } });
     let owner = c.ghOwner;
     if (!owner) {
       const u = await gh('/user');
-      if (u.status === 401) throw new Error('توكن GitHub غير صحيح أو منتهي');
+      if (u.status === 401) throw bad();
       if (!u.ok) throw new Error('تعذر الاتصال بـ GitHub');
       owner = (await u.json()).login;
       Sync.setSecrets({ ...Sync.secrets(), ghOwner: owner });
@@ -634,6 +648,7 @@ const Vid = {
     const repoName = c.ghRepo || 'rukba-videos';
     let full = owner + '/' + repoName, branch = 'main';
     const rr = await gh('/repos/' + full);
+    if (rr.status === 401) throw bad();
     if (rr.status === 404) {                                    // المستودع ما موجود → أنشئه
       const cr = await gh('/user/repos', { method: 'POST', body: JSON.stringify({ name: repoName, private: false, auto_init: true, description: 'Rukba — exercise videos (public links for the doctor)' }) });
       if (cr.ok) branch = (await cr.json()).default_branch || 'main';
@@ -649,6 +664,7 @@ const Vid = {
     const fname = 'v-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7) + '.' + ext;
     const path = 'videos/' + fname;
     const pr = await gh('/repos/' + full + '/contents/' + path, { method: 'PUT', body: JSON.stringify({ message: 'video ' + fname, content: btoa(bin), branch }) });
+    if (pr.status === 401) throw bad();
     if (!pr.ok) throw new Error(pr.status === 403 ? 'التوكن ما عنده صلاحية كتابة (repo)' : ('فشل الحفظ (HTTP ' + pr.status + ')'));
     const base = full === 'PROG-ALONE/rukba-v2' ? 'https://prog-alone.github.io/rukba-v2/' : ('https://' + owner.toLowerCase() + '.github.io/' + repoName + '/');
     return { url: base + path, publicId: full + '/' + path, host: 'github' };
@@ -768,11 +784,14 @@ async function startRecord(date, exId, btn) {
     dialog('إعداد رفع الفيديو',
       `<p class="sub" style="margin-top:0">الفيديو يُرفع لحسابك في <b>GitHub</b> (نفس حساب التطبيق)، ويظهر للدكتور مع رابط اليوم. يتنشأ مستودع صغير <span class="ltr">rukba-videos</span> تلقائياً.</p>
        <p class="sub">1) افتح <a href="https://github.com/settings/tokens/new?scopes=repo&description=rukba-videos" target="_blank" rel="noopener">إنشاء توكن GitHub</a><br>2) اختر صلاحية <b>repo</b> وأنشئه<br>3) الصق التوكن بالأسفل.</p>
-       <label class="f">توكن GitHub<input type="password" id="vTok" dir="ltr" placeholder="ghp_…" value="${esc(Sync.secrets().ghToken || '')}"></label>`,
-      [{ label: 'لاحقاً' }, { label: 'حفظ', cls: 'primary', run: dl => {
+       <label class="f">توكن GitHub<input type="password" id="vTok" dir="ltr" placeholder="ghp_…" value="${esc(Vid.cfg().ghToken || '')}"></label>`,
+      [{ label: 'لاحقاً' }, { label: 'حفظ', cls: 'primary', run: async dl => {
         const t = $('#vTok', dl).value.trim();
         if (!t) { toast('الصق التوكن'); return false; }
-        Sync.setSecrets({ ...Sync.secrets(), ghToken: t }); toast('حُفظ. جرّب التصوير الآن');
+        const p = await probeTok(t);
+        if (p.ok && p.scopes != null && !/repo/.test(p.scopes)) { toast('هذا التوكن بلا صلاحية «repo» — الفيديو يحتاجها.'); return false; }
+        if (!p.ok && p.hard) { toast(p.msg); return false; }
+        Sync.setSecrets({ ...Sync.secrets(), ghToken: t, ghOwner: undefined, ghRepo: undefined }); toast('حُفظ. جرّب التصوير الآن');
       } }]);
     return;
   }
@@ -2178,9 +2197,13 @@ VIEWS.settings = {
       if (!token) { toast('الصق التوكن'); return; }
       const old = gon.textContent; gon.disabled = true; gon.textContent = 'جاري التحقق…';
       try {
-        const c = await Sync.check(token);
-        if (c.scopes != null && !/gist/.test(c.scopes)) { toast('هذا التوكن بلا صلاحية «gist». أنشئ توكن فيه صلاحية gist.'); return; }
-        Sync.setSecrets({ ...Sync.secrets(), token, gistId: gistId || Sync.secrets().gistId, on: true }); manualSave = true; await saveCloud(true);
+        const p = await probeTok(token);
+        if (p.ok && p.scopes != null && !/gist/.test(p.scopes)) { toast('هذا التوكن بلا صلاحية «gist». أنشئ توكن فيه صلاحية gist.'); return; }
+        if (!p.ok && p.hard) { toast(p.msg); return; }
+        const upd = { ...Sync.secrets(), token, gistId: gistId || Sync.secrets().gistId, on: true };
+        // نفس التوكن يخدم الفيديو إذا عنده صلاحية repo
+        if (!p.ok || p.scopes == null || /repo/.test(p.scopes)) { upd.ghToken = token; upd.ghOwner = undefined; upd.ghRepo = undefined; }
+        Sync.setSecrets(upd); manualSave = true; await saveCloud(true);
       } catch (e) { toast('فشل: ' + String(e.message || e)); }
       finally { gon.disabled = false; gon.textContent = old; }
       render(); };
@@ -2190,10 +2213,18 @@ VIEWS.settings = {
       try { await AI.text('رد بكلمة "تمام" فقط.'); toast('Claude مفعّل'); render(); } catch (e) { toast(AI.err(e)); as.disabled = false; as.textContent = 'حفظ وتجربة'; } };
     const ao = $('#aOff', root); if (ao) ao.onclick = () => { const s = Sync.secrets(); delete s.apiKey; Sync.setSecrets(s); render(); };
     const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = fld(cp, '#docLink'); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
-    const vs = $('#vSave', root); if (vs) vs.onclick = () => {
+    const vs = $('#vSave', root); if (vs) vs.onclick = async () => {
       const t = fld(vs, '#vTok').value.trim();
       if (!t) { toast('الصق التوكن'); return; }
-      Sync.setSecrets({ ...Sync.secrets(), ghToken: t, ghOwner: undefined, ghRepo: undefined }); toast('حُفظ إعداد الفيديو ✓'); render();
+      const o = vs.textContent; vs.disabled = true; vs.textContent = 'جاري التحقق…';
+      try {
+        const p = await probeTok(t);
+        if (p.ok && p.scopes != null && !/repo/.test(p.scopes)) { toast('هذا التوكن بلا صلاحية «repo» — الفيديو يحتاجها.'); return; }
+        if (!p.ok && p.hard) { toast(p.msg); return; }
+        Sync.setSecrets({ ...Sync.secrets(), ghToken: t, ghOwner: undefined, ghRepo: undefined }); toast('حُفظ إعداد الفيديو ✓');
+      } catch (e) { toast('فشل: ' + String(e.message || e)); }
+      finally { vs.disabled = false; vs.textContent = o; }
+      render();
     };
     const vr = $('#vReset', root); if (vr) vr.onclick = () => { const s = Sync.secrets(); delete s.ghToken; delete s.ghOwner; delete s.ghRepo; delete s.cloud; delete s.preset; Sync.setSecrets(s); render(); };
     const ex = $('#exp', root); if (ex) ex.onclick = async () => { try { await CAP.downloads.save({ filename: `rukba-data-${today()}.json`, data: JSON.stringify(D, null, 1) }); } catch {} };

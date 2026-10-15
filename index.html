@@ -86,15 +86,15 @@ main { display: flex; flex-direction: column; min-height: 100vh; padding-top: 0;
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
 .card h2 { font-size: 17px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-/* ---------- القائمة العائمة (Sheet) ---------- */
-.sheet-scrim { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.45); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .25s; }
+/* ---------- القائمة العائمة (نافذة في وسط الشاشة) ---------- */
+.sheet-scrim { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.5); backdrop-filter: blur(3px); opacity: 0; pointer-events: none; transition: opacity .25s; }
 .sheet-scrim.show { opacity: 1; pointer-events: auto; }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 91; background: var(--surface); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.35); transform: translateY(110%); transition: transform .3s cubic-bezier(.3,1,.4,1); max-height: 82vh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom, 0px); }
-.sheet.show { transform: translateY(0); }
-.sheet-hd { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+.sheet { position: fixed; top: 50%; left: 50%; z-index: 91; width: min(560px, calc(100vw - 28px)); max-height: min(80vh, 720px); background: var(--surface); border: 1px solid var(--line); border-radius: 22px; box-shadow: 0 24px 70px rgba(0,0,0,.45); transform: translate(-50%, -50%) scale(.93); opacity: 0; transition: transform .3s cubic-bezier(.3,1.15,.5,1), opacity .18s; display: flex; flex-direction: column; overflow: hidden; }
+.sheet.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+.sheet-hd { display: flex; align-items: center; gap: 10px; padding: 16px 16px 12px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
 .sheet-hd b { font-family: var(--f-display); font-size: 18px; }
-.sheet-hd .grab { position: absolute; top: 7px; left: 50%; transform: translateX(-50%); width: 40px; height: 4px; border-radius: 99px; background: var(--line); }
-.sheet-list { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; display: grid; gap: 8px; }
+.sheet-hd .grab { display: none; }
+.sheet-list { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px; display: grid; gap: 8px; }
 .sheet-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; cursor: pointer; color: var(--ink); font: inherit; transition: transform .12s, background .18s; }
 .sheet-item:active { transform: scale(.98); }
 .sheet-item:hover { background: var(--surface); }

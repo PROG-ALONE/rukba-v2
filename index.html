@@ -85,6 +85,18 @@ main { display: flex; flex-direction: column; min-height: 100vh; padding-top: 0;
 @media (max-width: 620px) { .g2, .g3 { grid-template-columns: 1fr; } }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
 .card h2 { font-size: 17px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- القائمة العائمة (أكورديون البطاقات) ---------- */
+.acc-list { display: flex; flex-direction: column; gap: 10px; }
+.card.acc { padding: 0; overflow: hidden; }
+.card.acc > h2 { position: relative; cursor: pointer; user-select: none; -webkit-user-select: none; margin: 0; padding: 15px 40px 15px 16px; font-size: 16.5px; align-items: center; transition: background .18s; }
+.card.acc > h2:active { background: var(--surface-2); }
+.card.acc > h2::after { content: '▾'; position: absolute; inset-inline-end: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; transition: transform .28s cubic-bezier(.3,1.3,.5,1); }
+.card.acc.is-open > h2::after { transform: translateY(-50%) rotate(180deg); }
+.card.acc .acc-b { padding: 2px 16px 16px; }
+.card.acc:not(.is-open) .acc-b { display: none; }
+.card.acc.is-open .acc-b { animation: accIn .24s ease; }
+@keyframes accIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
 .sub { color: var(--ink-2); } .muted { color: var(--muted); font-size: 13.5px; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .stack { display: flex; flex-direction: column; gap: 14px; }
@@ -212,7 +224,7 @@ dialog .df { padding: 10px 18px 16px; display: flex; gap: 8px; justify-content: 
 .rptcard span { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
 .rptcard.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); }
 .rptcard.sel b { color: var(--accent); }
-@media print { .top, .tabs, .iconbtn, .seg, .btn, .viewer-banner, .head .row { display: none !important; } body { background: #fff; } main { padding: 0; max-width: none; } .card { border: 0; padding: 0; } .paper { border: 0; padding: 0; } main > * { animation: none !important; } }
+@media print { .top, .tabs, .iconbtn, .seg, .btn, .viewer-banner, .head .row { display: none !important; } body { background: #fff; } main { padding: 0; max-width: none; } .card { border: 0; padding: 0; } .paper { border: 0; padding: 0; } main > * { animation: none !important; } .card.acc .acc-b { display: block !important; } .card.acc { padding: 0 0 12px !important; } }
 /* إعادة رسم مخطط الركبة التفاعلي */
 .anat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 760px) { .anat { grid-template-columns: 1fr; } }
@@ -733,9 +745,49 @@ function render() {
   if (!V || !V.html) { console.error('View not found:', route.tab); return; }
   try {
     container.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
+    makeAccordions(container, route.tab);
     V.bind && V.bind(container, route.arg); bindCharts(container);
     $$('[data-go]', container).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
   } catch (e) { console.error('Render error:', e); container.innerHTML = '<div class="skeleton" style="color:var(--bad)">خطأ في العرض: ' + esc(e.message) + '</div>'; }
+}
+/* ---------- القائمة العائمة: كل بطاقة تبويب تُطوى لمختصر وتفتح في مكانها ---------- */
+const ACC = {};   // tab -> { عنوان البطاقة: مفتوحة؟ }
+function makeAccordions(root, tab) {
+  const first = !ACC[tab];
+  const open = ACC[tab] || (ACC[tab] = {});
+  let seen = 0;
+  const convert = card => {
+    const h2 = card.querySelector(':scope > h2');
+    if (!h2) return;                       // بطاقة بلا عنوان تبقى ظاهرة كما هي
+    const id = h2.textContent.trim();
+    const body = document.createElement('div');
+    body.className = 'acc-b';
+    let n = h2.nextElementSibling;          // كل ما بعد العنوان ينتقل لجسم قابل للطي
+    while (n) { const nx = n.nextElementSibling; body.appendChild(n); n = nx; }
+    card.classList.add('acc');
+    // مفتوحة إذا طلبتها البطاقة، أو مفتوحة سابقاً، أو (أول زيارة + أول بطاقة)
+    const wantOpen = card.hasAttribute('data-acc-open') || open[id] === true || (first && seen === 0 && open[id] !== false);
+    if (wantOpen) card.classList.add('is-open');
+    card.appendChild(body);
+    seen++;
+    h2.setAttribute('tabindex', '0');
+    h2.setAttribute('role', 'button');
+    h2.setAttribute('aria-expanded', wantOpen ? 'true' : 'false');
+    const toggle = () => {
+      const now = card.classList.toggle('is-open');
+      open[id] = now;
+      h2.setAttribute('aria-expanded', now ? 'true' : 'false');
+    };
+    h2.onclick = e => { if (e.target.closest('button, a, input, select, label')) return; toggle(); };
+    h2.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { if (e.target.closest('button, a, input, select, label')) return; e.preventDefault(); toggle(); } };
+  };
+  const walk = el => {
+    Array.from(el.children).forEach(ch => {
+      if (ch.classList.contains('grid')) walk(ch);
+      else if (ch.classList.contains('card') && !ch.classList.contains('kpi') && !ch.classList.contains('journey') && !ch.classList.contains('acc')) convert(ch);
+    });
+  };
+  walk(root);
 }
 function dialog(title, body, actions) {
   const dl = document.createElement('dialog'); dl.innerHTML = `<div class="dh">${esc(title)}</div><div class="db">${body}</div><div class="df"></div>`;

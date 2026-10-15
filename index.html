@@ -86,17 +86,26 @@ main { display: flex; flex-direction: column; min-height: 100vh; padding-top: 0;
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); padding: 16px 18px; min-width: 0; }
 .card h2 { font-size: 17px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
 
-/* ---------- القائمة العائمة (أكورديون البطاقات) ---------- */
-.acc-list { display: flex; flex-direction: column; gap: 10px; }
-.card.acc { padding: 0; overflow: hidden; }
-.card.acc > h2 { position: relative; cursor: pointer; user-select: none; -webkit-user-select: none; margin: 0; padding: 15px 40px 15px 16px; font-size: 16.5px; align-items: center; transition: background .18s; }
-.card.acc > h2:active { background: var(--surface-2); }
-.card.acc > h2::after { content: '▾'; position: absolute; inset-inline-end: 15px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 14px; transition: transform .28s cubic-bezier(.3,1.3,.5,1); }
-.card.acc.is-open > h2::after { transform: translateY(-50%) rotate(180deg); }
-.card.acc .acc-b { padding: 2px 16px 16px; }
-.card.acc:not(.is-open) .acc-b { display: none; }
-.card.acc.is-open .acc-b { animation: accIn .24s ease; }
-@keyframes accIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: none; } }
+/* ---------- القائمة العائمة (Sheet) ---------- */
+.sheet-scrim { position: fixed; inset: 0; z-index: 90; background: rgba(0,0,0,.45); backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .25s; }
+.sheet-scrim.show { opacity: 1; pointer-events: auto; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 91; background: var(--surface); border-top: 1px solid var(--line); border-radius: 20px 20px 0 0; box-shadow: 0 -12px 40px rgba(0,0,0,.35); transform: translateY(110%); transition: transform .3s cubic-bezier(.3,1,.4,1); max-height: 82vh; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.sheet.show { transform: translateY(0); }
+.sheet-hd { display: flex; align-items: center; gap: 10px; padding: 14px 16px 10px; border-bottom: 1px solid var(--line); flex: 0 0 auto; }
+.sheet-hd b { font-family: var(--f-display); font-size: 18px; }
+.sheet-hd .grab { position: absolute; top: 7px; left: 50%; transform: translateX(-50%); width: 40px; height: 4px; border-radius: 99px; background: var(--line); }
+.sheet-list { overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; display: grid; gap: 8px; }
+.sheet-item { display: flex; align-items: center; gap: 12px; width: 100%; text-align: start; background: var(--surface-2); border: 1px solid var(--line); border-radius: 14px; padding: 13px 14px; cursor: pointer; color: var(--ink); font: inherit; transition: transform .12s, background .18s; }
+.sheet-item:active { transform: scale(.98); }
+.sheet-item:hover { background: var(--surface); }
+.sheet-item .si-ic { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 11px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; }
+.sheet-item .si-ic svg { width: 20px; height: 20px; }
+.sheet-item .si-tx { flex: 1; min-width: 0; }
+.sheet-item .si-tx b { display: block; font-size: 15px; }
+.sheet-item .si-tx small { color: var(--muted); font-size: 12.5px; display: block; line-height: 1.4; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-item .si-ar { flex: 0 0 auto; color: var(--muted); font-size: 15px; }
+.card.flash { animation: cardFlash 1.6s ease; }
+@keyframes cardFlash { 0%, 100% { box-shadow: 0 0 0 0 transparent; } 20%, 60% { box-shadow: 0 0 0 3px var(--accent); } }
 .sub { color: var(--ink-2); } .muted { color: var(--muted); font-size: 13.5px; }
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 .stack { display: flex; flex-direction: column; gap: 14px; }
@@ -224,7 +233,7 @@ dialog .df { padding: 10px 18px 16px; display: flex; gap: 8px; justify-content: 
 .rptcard span { font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
 .rptcard.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent-soft); }
 .rptcard.sel b { color: var(--accent); }
-@media print { .top, .tabs, .iconbtn, .seg, .btn, .viewer-banner, .head .row { display: none !important; } body { background: #fff; } main { padding: 0; max-width: none; } .card { border: 0; padding: 0; } .paper { border: 0; padding: 0; } main > * { animation: none !important; } .card.acc .acc-b { display: block !important; } .card.acc { padding: 0 0 12px !important; } }
+@media print { .top, .tabs, .iconbtn, .seg, .btn, .viewer-banner, .head .row { display: none !important; } body { background: #fff; } main { padding: 0; max-width: none; } .card { border: 0; padding: 0; } .paper { border: 0; padding: 0; } main > * { animation: none !important; } }
 /* إعادة رسم مخطط الركبة التفاعلي */
 .anat { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 760px) { .anat { grid-template-columns: 1fr; } }
@@ -416,6 +425,12 @@ details.more { margin-top: 8px; } details.more summary { cursor: pointer; color:
   <nav class="tabs" id="tabs" aria-label="الأقسام"></nav>
 </div></header>
 <main id="main" class="view-port"><div class="view-content"><div class="skeleton">جاري تحميل بيانات المتابعة…</div></div></main>
+
+<div class="sheet-scrim" id="sheetScrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle" hidden>
+  <div class="sheet-hd"><span class="grab"></span><b id="sheetTitle"></b><span class="grow"></span><button class="iconbtn" id="sheetClose" aria-label="إغلاق">✕</button></div>
+  <div class="sheet-list" id="sheetList"></div>
+</div>
 
 <script>
 'use strict';
@@ -730,9 +745,94 @@ const TABS = [['home', 'الرئيسية'], ['today', 'اليوم', true], ['pla
 function route(tab, arg) { route.tab = tab; route.arg = arg; ls.set('rukba.tab', tab); renderTabs(); render(); scrollTo(0, 0); }
 function renderTabs() {
   $('#tabs').innerHTML = TABS.filter(t => !t[2] || EDIT).map(([k, l]) => `<button data-tab="${k}" ${route.tab === k ? 'aria-current="page"' : ''}>${ico(k)}<span>${l}</span></button>`).join('');
-  $$('#tabs button').forEach(b => b.onclick = () => route(b.dataset.tab));
-  const g = $('#gear'); g.hidden = !EDIT; g.innerHTML = ico('gear'); g.toggleAttribute('aria-current', route.tab === 'settings'); g.onclick = () => route('settings');
+  $$('#tabs button').forEach(b => b.onclick = () => openSheet(b.dataset.tab));
+  const g = $('#gear'); g.hidden = !EDIT; g.innerHTML = ico('gear'); g.toggleAttribute('aria-current', route.tab === 'settings'); g.onclick = () => openSheet('settings');
 }
+
+/* ================= القائمة العائمة (Sheet) ================= */
+const P = k => IC[k] || IC.home;
+const CARD_INDEX = {
+  home: [
+    { ic: 'home', t: 'رحلة التعافي', d: 'الخريطة التفاعلية لكل المستويات', sel: '#jr' },
+    { ic: 'plan', t: 'المستوى الحالي', d: 'وسوم الوصول ومكانك في الدورة', kw: 'المستوى' },
+    { ic: 'today', t: 'زاوية الثني', d: 'قياس ميلان الركبة للسجدة', kw: 'زاوية الثني' },
+    { ic: 'today', t: 'ملخص اليوم', d: 'التمارين والخطوات وألم الصبح', kw: 'اليوم' },
+    { ic: 'reports', t: 'الأهداف', d: 'تابع أهدافك وتحققها', kw: 'الأهداف' }
+  ],
+  today: [
+    { ic: 'plan', t: 'تمارين اليوم', d: 'قائمة التمارين والمجموعات والتكرارات', kw: 'التمارين' },
+    { ic: 'injury', t: 'تسجيل الألم', d: 'ألم التمارين والصبح خلال اليوم', kw: 'الألم' },
+    { ic: 'reports', t: 'القياسات', d: 'الوزن والحركة اليومية والقياسات', kw: 'القياسات' },
+    { ic: 'reports', t: 'ملاحظات للدكتور', d: 'اكتب ملاحظاتك للمعالج', kw: 'ملاحظات' }
+  ],
+  plan: [
+    { ic: 'plan', t: 'المراحل', d: 'كل مراحل البرنامج من البداية', kw: 'المراحل' },
+    { ic: 'today', t: 'المرحلة الحالية', d: 'تمارين وحمولات مرحلتك الآن', kw: 'الحالية' },
+    { ic: 'reports', t: 'الاستشارات', d: 'مواعيد ونتائج الاستشارات', kw: 'الاستشارات' },
+    { ic: 'reports', t: 'المراحل السابقة', d: 'راجع ما أنجزته سابقاً', kw: 'السابقة' }
+  ],
+  log: [
+    { ic: 'today', t: 'التقويم', d: 'سجل كل يوم بالتفصيل', sel: '.cal, .card' },
+    { ic: 'reports', t: 'تفاصيل اليوم', d: 'فتح أي يوم لتفاصيله', kw: 'تفاصيل' },
+    { ic: 'plan', t: 'الخطوات', d: 'منحنى الخطوات خلال 30 يوم', kw: 'الخطوات' },
+    { ic: 'injury', t: 'منحنى الألم', d: 'تطور الألم خلال 30 يوم', kw: 'الألم' },
+    { ic: 'reports', t: 'الوزن', d: 'منحنى الوزن نحو هدفك', kw: 'الوزن' }
+  ],
+  injury: [
+    { ic: 'injury', t: 'التمثيل المرئي', d: 'صورة تفاعلية للركبة والطبقات', kw: 'التمثيل' },
+    { ic: 'plan', t: 'التشريح', d: 'بنية الركبة والعضلات والوتر', kw: 'التشريح' },
+    { ic: 'today', t: 'الأعراض', d: 'العلامات الشائعة ومتى تنتبه', kw: 'الأعراض' },
+    { ic: 'reports', t: 'إدارة الحمل', d: 'قاعدة 24 ساعة وتنظيم التحميل', kw: 'إدارة' },
+    { ic: 'plan', t: 'التمارين', d: 'ربط التمارين بالبنية المصابة', kw: 'التمارين' },
+    { ic: 'reports', t: 'أسئلة شائعة', d: 'إجابات على الأسئلة المتكررة', kw: 'أسئلة' },
+    { ic: 'reports', t: 'المراجع العلمية', d: 'المصادر والمراجع المعتمدة', kw: 'المراجع' }
+  ],
+  reports: [
+    { ic: 'reports', t: 'اختيار الفترة', d: 'حدد من تاريخ إلى تاريخ', kw: 'الفترة' },
+    { ic: 'plan', t: 'نوع التقرير', d: '8 أنواع: استشارة، أسبوعي، تقدم…', kw: 'نوع التقرير' },
+    { ic: 'today', t: 'صيغة الإخراج', d: 'HTML أو JSON أو CSV', kw: 'الإخراج' },
+    { ic: 'reports', t: 'المعاينة والتنزيل', d: 'عاين ثم نزّل أو اطبع PDF', kw: 'معاينة' }
+  ],
+  settings: [
+    { ic: 'reports', t: 'مركز التقارير', d: 'التصدير والطباعة', kw: 'مركز التقارير' },
+    { ic: 'home', t: 'الملف الشخصي', d: 'البيانات والهدف', kw: 'الملف' },
+    { ic: 'injury', t: 'Claude والذكاء', d: 'ملخصات ذكية للتقارير', kw: 'Claude' },
+    { ic: 'plan', t: 'المزامنة بين الأجهزة', d: 'نسخ احتياطي تلقائي', kw: 'المزامنة' },
+    { ic: 'reports', t: 'نقل البيانات', d: 'استيراد وتصدير ملفات', kw: 'نقل' }
+  ]
+};
+let sheetScrollTarget = null;
+function openSheet(tab) {
+  if (!D) { route(tab); return; }
+  const items = CARD_INDEX[tab];
+  const label = (TABS.find(t => t[0] === tab) || ['', 'الإعدادات'])[1];
+  $('#sheetTitle').textContent = label;
+  const list = $('#sheetList');
+  if (!items) { route(tab); return; }
+  list.innerHTML = `<button class="sheet-item" data-full="1"><span class="si-ic">${ico(tab in IC ? tab : 'home')}</span><span class="si-tx"><b>فتح الصفحة كاملة</b><small>عرض كل محتوى ${esc(label)}</small></span><span class="si-ar">‹</span></button>` +
+    items.map((it, i) => `<button class="sheet-item" data-i="${i}"><span class="si-ic">${ico(it.ic)}</span><span class="si-tx"><b>${esc(it.t)}</b><small>${esc(it.d)}</small></span><span class="si-ar">‹</span></button>`).join('');
+  list.querySelector('[data-full]').onclick = () => { closeSheet(); route(tab); };
+  list.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+    const it = items[+b.dataset.i];
+    closeSheet();
+    sheetScrollTarget = it;
+    route(tab);
+    setTimeout(() => scrollToCard(it), 120);
+  });
+  showSheet();
+}
+function scrollToCard(it) {
+  const c = contentBox(); if (!c) return;
+  let el = it.sel ? c.querySelector(it.sel) : null;
+  if (!el && it.kw) {
+    el = Array.from(c.querySelectorAll('.card')).find(card => { const h = card.querySelector('h2'); return h && h.textContent.includes(it.kw); });
+  }
+  if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600); }
+}
+function showSheet() { const s = $('#sheet'); s.hidden = false; requestAnimationFrame(() => { s.classList.add('show'); $('#sheetScrim').classList.add('show'); }); }
+function closeSheet() { const s = $('#sheet'); s.classList.remove('show'); $('#sheetScrim').classList.remove('show'); setTimeout(() => { s.hidden = true; }, 300); }
+$('#sheetScrim').onclick = closeSheet;
+$('#sheetClose').onclick = closeSheet;
 function render() {
   if (!D) return;
   if (!VIEWS[route.tab]) route.tab = 'home';
@@ -745,49 +845,9 @@ function render() {
   if (!V || !V.html) { console.error('View not found:', route.tab); return; }
   try {
     container.innerHTML = (EDIT ? '' : `<div class="viewer-banner">عرض للتقدم فقط. البيانات يسجلها ${esc(D.profile.name)} يومياً.</div>`) + V.html(route.arg);
-    makeAccordions(container, route.tab);
     V.bind && V.bind(container, route.arg); bindCharts(container);
     $$('[data-go]', container).forEach(b => b.onclick = () => route(b.dataset.go, b.dataset.arg));
   } catch (e) { console.error('Render error:', e); container.innerHTML = '<div class="skeleton" style="color:var(--bad)">خطأ في العرض: ' + esc(e.message) + '</div>'; }
-}
-/* ---------- القائمة العائمة: كل بطاقة تبويب تُطوى لمختصر وتفتح في مكانها ---------- */
-const ACC = {};   // tab -> { عنوان البطاقة: مفتوحة؟ }
-function makeAccordions(root, tab) {
-  const first = !ACC[tab];
-  const open = ACC[tab] || (ACC[tab] = {});
-  let seen = 0;
-  const convert = card => {
-    const h2 = card.querySelector(':scope > h2');
-    if (!h2) return;                       // بطاقة بلا عنوان تبقى ظاهرة كما هي
-    const id = h2.textContent.trim();
-    const body = document.createElement('div');
-    body.className = 'acc-b';
-    let n = h2.nextElementSibling;          // كل ما بعد العنوان ينتقل لجسم قابل للطي
-    while (n) { const nx = n.nextElementSibling; body.appendChild(n); n = nx; }
-    card.classList.add('acc');
-    // مفتوحة إذا طلبتها البطاقة، أو مفتوحة سابقاً، أو (أول زيارة + أول بطاقة)
-    const wantOpen = card.hasAttribute('data-acc-open') || open[id] === true || (first && seen === 0 && open[id] !== false);
-    if (wantOpen) card.classList.add('is-open');
-    card.appendChild(body);
-    seen++;
-    h2.setAttribute('tabindex', '0');
-    h2.setAttribute('role', 'button');
-    h2.setAttribute('aria-expanded', wantOpen ? 'true' : 'false');
-    const toggle = () => {
-      const now = card.classList.toggle('is-open');
-      open[id] = now;
-      h2.setAttribute('aria-expanded', now ? 'true' : 'false');
-    };
-    h2.onclick = e => { if (e.target.closest('button, a, input, select, label')) return; toggle(); };
-    h2.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { if (e.target.closest('button, a, input, select, label')) return; e.preventDefault(); toggle(); } };
-  };
-  const walk = el => {
-    Array.from(el.children).forEach(ch => {
-      if (ch.classList.contains('grid')) walk(ch);
-      else if (ch.classList.contains('card') && !ch.classList.contains('kpi') && !ch.classList.contains('journey') && !ch.classList.contains('acc')) convert(ch);
-    });
-  };
-  walk(root);
 }
 function dialog(title, body, actions) {
   const dl = document.createElement('dialog'); dl.innerHTML = `<div class="dh">${esc(title)}</div><div class="db">${body}</div><div class="df"></div>`;

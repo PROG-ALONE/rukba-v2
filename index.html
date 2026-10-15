@@ -569,11 +569,30 @@ const Sync = {
     const s = this.secrets();
     const res = await fetch('https://api.github.com' + path, { ...opt, cache: 'no-store',
       headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(auth ? { Authorization: 'Bearer ' + s.token } : {}), ...(opt.body ? { 'Content-Type': 'application/json' } : {}) } });
-    if (!res.ok) throw new Error({ 401: 'التوكن غير صحيح أو منتهي', 403: 'التوكن ما عنده صلاحية gist', 404: 'الـ Gist غير موجود' }[res.status] || ('HTTP ' + res.status));
+    if (!res.ok) {
+      const sc = res.headers.get('x-oauth-scopes');
+      let m = { 401: 'التوكن غير صحيح أو منتهي', 403: 'التوكن ما عنده صلاحية gist' }[res.status];
+      if (res.status === 404) m = (sc != null && !/gist/.test(sc)) ? 'هذا التوكن بلا صلاحية «gist». أنشئ توكن فيه صلاحية gist.' : 'الـ Gist غير موجود — تأكد من رقم الـ Gist.';
+      throw new Error(m || ('HTTP ' + res.status));
+    }
     return res.json();
+  },
+  // يتحقق من صحة التوكن ويقرأ صلاحياته (x-oauth-scopes)
+  async check(token) {
+    const res = await fetch('https://api.github.com/user', { cache: 'no-store', headers: { Accept: 'application/vnd.github+json', Authorization: 'Bearer ' + token } });
+    if (res.status === 401) throw new Error('التوكن غير صحيح أو منتهي');
+    if (!res.ok) throw new Error('تعذر التحقق من التوكن (HTTP ' + res.status + ')');
+    const sc = res.headers.get('x-oauth-scopes');
+    return { scopes: sc == null ? null : sc };
   },
   async read(j) { const f = j.files?.[GFILE]; if (!f) return null; return JSON.parse(f.truncated ? await (await fetch(f.raw_url, { cache: 'no-store' })).text() : f.content); }
 };
+// يقبل رقم الـ Gist أو رابطه الكامل ويطلع الرقم
+function normGistId(v) {
+  v = String(v || '').trim(); if (!v) return '';
+  const u = v.match(/gist\.github\.com\/(?:[^/]+\/)?([0-9a-fA-F]+)/); if (u) return u[1];
+  const h = v.match(/[0-9a-fA-F]{16,}/); return h ? h[0] : v;
+}
 
 /* ================= الفيديو (رفع لخدمة خارجية) ================= */
 const Vid = {
@@ -2126,10 +2145,10 @@ VIEWS.settings = {
       ${gh ? `<section class="card"><h2>المزامنة بين الأجهزة</h2>
         ${Sync.enabled() ? `<p class="sub" style="margin-top:0">مفعّلة${s.lastSync ? ' · آخر مزامنة ' + new Date(s.lastSync).toLocaleTimeString('ar-IQ-u-nu-latn', { hour: '2-digit', minute: '2-digit' }) : ''}. نفس التوكن ورقم الـ Gist على الآيباد واللابتوب.</p>
              <div class="row"><button class="btn primary" id="saveNow">زامن الآن</button><button class="btn" id="gOff">إيقاف</button></div>`
-          : `<p class="sub" style="margin-top:0">الصق توكن GitHub (صلاحية gist فقط). إذا عندك Gist من النسخة القديمة الصق رقمه.</p>
-             <label class="f">التوكن<input type="password" id="gTok" dir="ltr" value="${esc(s.token || '')}"></label>
-             <label class="f" style="margin-top:8px">رقم الـ Gist (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}"></label>
-             <div class="row" style="margin-top:8px"><button class="btn primary" id="gOn">فعّل المزامنة</button></div>`}</section>` : ''}
+          : `<p class="sub" style="margin-top:0">الصق توكن GitHub فيه صلاحية <b>gist</b>. إذا عندك Gist من جهاز ثاني، الصق رقمه أو رابطه الكامل. (نفس التوكن يشتغل للفيديو لو أضفت له صلاحية repo.)</p>
+             <label class="f">توكن GitHub (صلاحية gist)<input type="password" id="gTok" dir="ltr" value="${esc(s.token || '')}" placeholder="ghp_…"></label>
+             <label class="f" style="margin-top:8px">رقم الـ Gist أو رابطه (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}" placeholder="abc123… أو رابط gist"></label>
+             <div class="row" style="margin-top:8px"><button class="btn primary" id="gOn">فعّل المزامنة</button><a class="btn" href="https://github.com/settings/tokens/new?scopes=repo,gist&description=rukba" target="_blank" rel="noopener">إنشاء توكن</a></div>`}</section>` : ''}
       <section class="card"><h2>رفع الفيديو للدكتور ${Vid.ready() ? '<span class="badge ok">مفعّل</span>' : '<span class="badge">غير مفعّل</span>'}</h2>
         <p class="sub" style="margin-top:0">لكل تمرين زر ● يصوّر فيديو (20–30 ثانية) ويرفعه لحسابك في <b>GitHub</b>، ويشوفه الدكتور مع رابط اليوم.</p>
         ${Vid.ready() ? `<div class="row"><button class="btn" id="vReset">تغيير الإعداد</button></div>`
@@ -2153,8 +2172,16 @@ VIEWS.settings = {
     const sn = $('#saveNow', root); if (sn) sn.onclick = () => { manualSave = true; clearTimeout(saveTimer); if (MODE === 'claude') dirty = true; saveCloud(true); };
     const go = $('#gOff', root); if (go) go.onclick = () => { Sync.setSecrets({ ...Sync.secrets(), on: false }); saveState(); render(); };
     const gon = $('#gOn', root); if (gon) gon.onclick = async () => {
-      const token = fld(gon, '#gTok').value.trim(), gistId = fld(gon, '#gId').value.trim(); if (!token) { toast('الصق التوكن'); return; }
-      Sync.setSecrets({ ...Sync.secrets(), token, gistId: gistId || Sync.secrets().gistId, on: true }); manualSave = true; await saveCloud(true); render(); };
+      const token = fld(gon, '#gTok').value.trim(); let gistId = normGistId(fld(gon, '#gId').value);
+      if (!token) { toast('الصق التوكن'); return; }
+      const old = gon.textContent; gon.disabled = true; gon.textContent = 'جاري التحقق…';
+      try {
+        const c = await Sync.check(token);
+        if (c.scopes != null && !/gist/.test(c.scopes)) { toast('هذا التوكن بلا صلاحية «gist». أنشئ توكن فيه صلاحية gist.'); return; }
+        Sync.setSecrets({ ...Sync.secrets(), token, gistId: gistId || Sync.secrets().gistId, on: true }); manualSave = true; await saveCloud(true);
+      } catch (e) { toast('فشل: ' + String(e.message || e)); }
+      finally { gon.disabled = false; gon.textContent = old; }
+      render(); };
     const as = $('#aSave', root); if (as) as.onclick = async () => {
       const k = fld(as, '#aKey').value.trim(); if (!k) { toast('الصق المفتاح'); return; }
       Sync.setSecrets({ ...Sync.secrets(), apiKey: k }); as.disabled = true; as.textContent = 'جاري التجربة…';

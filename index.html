@@ -634,6 +634,14 @@ const Vid = {
     const base = full === 'PROG-ALONE/rukba-v2' ? 'https://prog-alone.github.io/rukba-v2/' : ('https://' + owner.toLowerCase() + '.github.io/' + repoName + '/');
     return { url: base + path, publicId: full + '/' + path, host: 'github' };
   },
+  // ينتظر لين يخدم GitHub Pages الفيديو (البناء يأخد ~30-60 ثانية)
+  async whenLive(url, tries = 40) {
+    for (let i = 0; i < tries; i++) {
+      try { const r = await fetch(url, { method: 'HEAD', cache: 'no-store' }); if (r.ok) return true; } catch {}
+      await new Promise(r => setTimeout(r, 3000));
+    }
+    return false;
+  },
   // يفتح الكاميرا داخل التطبيق ويسجّل فيديو (MediaRecorder) — يعيد Blob
   record(maxSec = 30) {
     if (!navigator.mediaDevices?.getUserMedia) return this.file();
@@ -756,8 +764,11 @@ async function startRecord(date, exId, btn) {
     btn.innerHTML = '⇧'; toast('جاري رفع الفيديو…');
     const meta = await Vid.upload(file);
     attachVideo(date, exId, meta);
-    toast('انحفظ الفيديو ✓');
     const y = scrollY; render(); scrollTo(0, y);
+    if (meta.host === 'github') {
+      toast('انحفظ ✓ — يجهّز للنشر، يفتح خلال دقيقة');
+      Vid.whenLive(meta.url, 40).then(ok => { if (ok) toast('الفيديو صار جاهز للمشاركة ✓'); });
+    } else { toast('انحفظ الفيديو ✓'); }
   } catch (e) {
     const m = String(e.message || e);
     if (m === 'ألغيت' || m === 'ملف' || m === 'undefined') { /* صامت */ }

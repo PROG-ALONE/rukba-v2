@@ -1480,17 +1480,25 @@ function shareDayLink(d) {
   });
 }
 
+/* ================= إعدادات ما يُعرض للدكتور (تُحفظ داخل profile فيتزامن للطبيب) ================= */
+function docView() {
+  const v = D.profile?.docView || {};
+  return { range: v.range || '30', plan: v.plan === 'all' ? 'all' : 'cur', secs: { kpi: true, chart: true, vids: true, plan: true, notes: true, day: true, ...(v.secs || {}) } };
+}
+
 /* ================= صفحة عرض الدكتور (رابط واحد · عرض فقط) ================= */
 VIEWS.dsum = {
   html() {
-    const t = today(), p = D.profile, ph = curPhase();
-    const last30 = range(addDays(t, -29), t), w = windowStats(last30);
-    const ws = series('weight'), wEnd = ws.at(-1)?.y ?? p.startWeight, wDiff = r1(wEnd - p.startWeight);
-    const logged30 = last30.filter(d => D.logs?.[d]).length;
-    // فيديوهات التمارين المسجّلة (الأحدث أولاً)
+    const t = today(), p = D.profile, ph = curPhase(), DV = docView();
+    const allDays = [p.startDate, ...Object.keys(D.logs || {}), ...phasesSorted().map(x => x.start)].filter(Boolean).sort();
+    const days = DV.range === 'all' ? range(allDays[0] || p.startDate, t) : range(addDays(t, -(Math.max(1, +DV.range || 30) - 1)), t);
+    const win = new Set(days), winLabel = days.length + ' يوم', xt = days.length > 40 ? 10 : undefined;
+    const w = windowStats(days), ws = series('weight'), wEnd = ws.at(-1)?.y ?? p.startWeight, wDiff = r1(wEnd - p.startWeight);
+    const loggedN = days.filter(d => D.logs?.[d]).length;
+    // فيديوهات التمارين المسجّلة داخل المدة المحددة (الأحدث أولاً)
     const recs = [];
     for (const [d, lg] of Object.entries(D.logs || {})) {
-      if (!lg?.ex) continue;
+      if (!lg?.ex || !win.has(d)) continue;
       const s = dayStats(d);
       for (const [exId, v] of Object.entries(lg.ex)) {
         if (!v?.video?.url) continue;
@@ -1501,7 +1509,7 @@ VIEWS.dsum = {
     recs.sort((a, b) => (a.d < b.d ? 1 : a.d > b.d ? -1 : 0));
     const recDays = [...new Set(recs.map(r => r.d))];
     const vidBlock = !recs.length
-      ? `<section class="card"><h2>فيديوهات التمارين</h2><p class="muted" style="margin:0">لا توجد فيديوهات مسجّلة بعد. يسجّلها ${esc(p.name)} لكل تمرين من التطبيق.</p></section>`
+      ? `<section class="card"><h2>فيديوهات التمارين</h2><p class="muted" style="margin:0">لا توجد فيديوهات مسجّلة خلال ${esc(winLabel)}. يسجّلها ${esc(p.name)} لكل تمرين من التطبيق.</p></section>`
       : recDays.map(d => {
           const list = recs.filter(r => r.d === d);
           return `<section class="card" id="v-${d}" style="margin-top:12px"><h2>${wd(d)} ${fD(d, { day: 'numeric', month: 'long' })} <span class="badge ok">${list.length} فيديو</span></h2>
@@ -1509,34 +1517,37 @@ VIEWS.dsum = {
             <div class="vids-strip" style="margin-top:6px">${list.map(r => `<figure style="margin:0;display:flex;flex-direction:column;gap:4px"><video src="${esc(r.url)}" controls preload="metadata"></video><figcaption style="font-size:12px;color:var(--muted);text-align:center">${esc(r.name)}</figcaption></figure>`).join('')}</div></section>`;
         }).join('');
     // لو الرابط فيه يوم محدّد (?day=) → نضيف تفاصيل ذلك اليوم كأول قسم
-    const daySec = (DOC_DAY && /^\d{4}-\d{2}-\d{2}$/.test(DOC_DAY))
+    const daySec = (DV.secs.day && DOC_DAY && /^\d{4}-\d{2}-\d{2}$/.test(DOC_DAY))
       ? `<section class="card" id="d-${DOC_DAY}" style="margin-top:14px"><span class="badge path">تفاصيل اليوم المطلوب</span>${dayDetail(DOC_DAY)}</section>` : '';
-    const planBlock = ph ? phaseBlock(ph, true) : '<p class="muted">لا توجد مرحلة حالية.</p>';
-    // آخر الملاحظات
-    const notes = Object.values(D.logs || {}).filter(l => l?.notes).sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 4)
+    // الخطة: المرحلة الحالية فقط أو كل المراحل
+    const planBlock = DV.plan === 'all'
+      ? phasesSorted().map(x => `<div style="margin-top:10px"><h3 style="margin:0 0 6px;font-size:15px">${esc(x.name)} <span class="badge">${esc(D.levels.find(l => l.id === x.level)?.name || '')}</span></h3>${phaseBlock(x)}</div>`).join('')
+      : (ph ? phaseBlock(ph, true) : '<p class="muted">لا توجد مرحلة حالية.</p>');
+    // آخر الملاحظات داخل المدة المحددة
+    const notes = Object.values(D.logs || {}).filter(l => l?.notes && win.has(l.date)).sort((a, b) => a.date < b.date ? 1 : -1).slice(0, 5)
       .map(l => `<div style="margin-top:8px"><b>${fD(l.date)}</b> <span class="muted">${esc(l.notes)}</span></div>`).join('');
-    return `<div class="head"><div><h1>ملخص المتابعة</h1><p>${esc(p.name)} · ${esc(p.diagnosis)} · المعالج ${esc(p.therapist)}</p></div>
+    return `<div class="head"><div><h1>ملخص المتابعة</h1><p>${esc(p.name)} · ${esc(p.diagnosis)} · المعالج ${esc(p.therapist)}</p>
+          <p class="muted" style="margin:3px 0 0;font-size:12.5px">المدة المعروضة: ${esc(winLabel)} · الخطة: ${DV.plan === 'all' ? 'كل المراحل' : 'المرحلة الحالية'} · الأقسام: ${[['kpi', 'المؤشرات'], ['chart', 'الرسوم'], ['vids', 'الفيديوهات'], ['plan', 'التمارين'], ['notes', 'الملاحظات']].filter(([k]) => DV.secs[k]).map(([, l]) => l).join('، ') || 'بدون'}</p></div>
         <span class="badge path">آخر بيانات ${fD(t)}</span></div>
       ${daySec}
-      <div class="grid g4">${[
-        ['الالتزام · 30 يوم', w.adh == null ? '—' : r0(w.adh * 100) + '%', (w.logged.length ? w.logged.length + ' يوم مسجّل' : '')],
-        ['أعلى ألم · 30 يوم', w.painMax < 0 ? '—' : w.painMax, 'الحد ' + (ph?.painLimit ?? '—')],
-        ['معدل الخطوات · 30 يوم', fmt(w.steps), (ph ? 'الهدف ' + fmt(ph.stepTarget) : '')],
+      ${DV.secs.kpi ? `<div class="grid g4">${[
+        ['الالتزام · ' + winLabel, w.adh == null ? '—' : r0(w.adh * 100) + '%', (w.logged.length ? w.logged.length + ' يوم مسجّل' : '')],
+        ['أعلى ألم · ' + winLabel, w.painMax < 0 ? '—' : w.painMax, 'الحد ' + (ph?.painLimit ?? '—')],
+        ['معدل الخطوات · ' + winLabel, fmt(w.steps), (ph ? 'الهدف ' + fmt(ph.stepTarget) : '')],
         ['الوزن', fmt(wEnd, 1) + ' كغم', (wDiff === 0 ? 'ثابت' : (wDiff < 0 ? 'نزل ' + Math.abs(wDiff) : 'زاد ' + wDiff) + ' كغم')],
         ['المرحلة الحالية', ph ? esc(ph.name) : '—', ph ? (D.levels.find(l => l.id === ph.level)?.name || '') : ''],
-        ['أيام مسجّلة · 30 يوم', logged30, ''],
+        ['أيام مسجّلة · ' + winLabel, loggedN, ''],
         ['الخطوات (اليوم)', fmt(D.logs?.[t]?.steps), ''],
         ['زاوية الثني', curFlex() + '°', 'الهدف ' + (p.flexionGoal ?? '—') + '°']
-      ].map(([l, v, d]) => kpi(l, v, d)).join('')}</div>
-      <div class="grid g2" style="margin-top:14px">
-        <section class="card"><h2>الخطوات · 30 يوم</h2>${chart({ type: 'bar', data: last30.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), refs: [{ y: ph?.stepTarget || 7000, label: fmt(ph?.stepTarget || 7000) }], label: 'الخطوات', tip: d => d.y == null ? fD(d.x) + ': غير مسجل' : `${wd(d.x)} ${fD(d.x)}<br><b>${fmt(d.y)}</b> خطوة` })}</section>
-        <section class="card"><h2>الألم · 30 يوم <span class="legend" style="margin:0"><span><i style="background:var(--series-1)"></i>تمارين</span><span><i style="background:var(--series-2)"></i>صبح</span></span></h2>
-          ${chart({ type: 'line', data: last30.map(d => { const s = dayStats(d); return { x: d, y: s.painMax, m: s.painMorning }; }), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], refs: [{ y: ph?.painLimit ?? 0, label: 'الحد', color: 'var(--ok)' }], label: 'الألم', tip: d => `${fD(d.x)}<br>تمارين ${d.y ?? '—'} · صبح ${d.m ?? '—'}` })}</section>
-      </div>
-      <h2 style="margin:18px 0 0">فيديوهات التمارين <span class="muted">${recs.length}</span></h2>
-      ${vidBlock}
-      <section class="card" style="margin-top:12px"><h2>تمارين المرحلة الحالية <span class="badge">${ph ? esc(ph.name) : '—'}</span></h2>${planBlock}</section>
-      ${notes ? `<section class="card" style="margin-top:12px"><h2>آخر الملاحظات</h2>${notes}</section>` : ''}`;
+      ].map(([l, v, d]) => kpi(l, v, d)).join('')}</div>` : ''}
+      ${DV.secs.chart ? `<div class="grid g2" style="margin-top:14px">
+        <section class="card"><h2>الخطوات · ${esc(winLabel)}</h2>${chart({ type: 'bar', xt, data: days.map(d => ({ x: d, y: D.logs[d]?.steps ?? null })), refs: [{ y: ph?.stepTarget || 7000, label: fmt(ph?.stepTarget || 7000) }], label: 'الخطوات', tip: d => d.y == null ? fD(d.x) + ': غير مسجل' : `${wd(d.x)} ${fD(d.x)}<br><b>${fmt(d.y)}</b> خطوة` })}</section>
+        <section class="card"><h2>الألم · ${esc(winLabel)} <span class="legend" style="margin:0"><span><i style="background:var(--series-1)"></i>تمارين</span><span><i style="background:var(--series-2)"></i>صبح</span></span></h2>
+          ${chart({ type: 'line', xt, data: days.map(d => { const s = dayStats(d); return { x: d, y: s.painMax, m: s.painMorning }; }), series: [{ key: 'y', color: 'var(--series-1)' }, { key: 'm', color: 'var(--series-2)' }], yMin: 0, yMax: 10, ticks: [0, 2, 4, 6, 8, 10], refs: [{ y: ph?.painLimit ?? 0, label: 'الحد', color: 'var(--ok)' }], label: 'الألم', tip: d => `${fD(d.x)}<br>تمارين ${d.y ?? '—'} · صبح ${d.m ?? '—'}` })}</section>
+      </div>` : ''}
+      ${DV.secs.vids ? `<h2 style="margin:18px 0 0">فيديوهات التمارين <span class="muted">${recs.length}</span></h2>${vidBlock}` : ''}
+      ${DV.secs.plan ? `<section class="card" style="margin-top:12px"><h2>تمارين الخطة <span class="badge">${DV.plan === 'all' ? 'كل المراحل' : esc(ph?.name || '—')}</span></h2>${planBlock}</section>` : ''}
+      ${DV.secs.notes && notes ? `<section class="card" style="margin-top:12px"><h2>آخر الملاحظات</h2>${notes}</section>` : ''}`;
   },
   bind(root) {
     $$('[data-more]', root).forEach(b => b.onclick = () => { const c = b.closest('.exc'); c.classList.toggle('open'); b.textContent = c.classList.contains('open') ? 'إخفاء' : 'التفاصيل'; });
@@ -2214,7 +2225,7 @@ function standalone(inner, title) {
 /* ================= الإعدادات ================= */
 VIEWS.settings = {
   html() {
-    const p = D.profile, s = Sync.secrets(), gh = MODE === 'gh';
+    const p = D.profile, s = Sync.secrets(), gh = MODE === 'gh', DV = docView();
     const link = gh && Sync.enabled() && s.gistId ? location.href.replace(/[#?].*$/, '') + '?d=' + s.gistId : '';
     return `<div class="head"><div><h1>الإعدادات</h1><p>${gh ? 'البيانات محفوظة على هذا الجهاز، وتتزامن بين أجهزتك عن طريق GitHub Gist إذا فعّلته.' : 'البيانات محفوظة بالسحابة وتتزامن تلقائياً.'}</p></div></div>
     <div class="grid g2" style="align-items:start">
@@ -2247,6 +2258,22 @@ VIEWS.settings = {
         ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يفتح له صفحة واحدة فيها ملخص المتابعة وفيديوهات التمارين، وما يشوف التسجيل ولا الإعدادات.</p>'
         : link ? `<p class="sub" style="margin-top:0">ابعثه لد. أصيل. يفتح له <b>صفحة واحدة</b> فيها ملخص المتابعة (الالتزام، الألم، الخطوات، الوزن) و<b>فيديوهات التمارين</b> وتفاصيل المرحلة الحالية. تُحدَّث تلقائياً كل ما تزامن.</p><input type="text" readonly dir="ltr" id="docLink" value="${esc(link)}"><div class="row" style="margin-top:8px"><button class="btn" id="cpLink">انسخ الرابط</button></div>`
         : '<p class="sub" style="margin:0">فعّل المزامنة أولاً، وبعدها يطلع هنا الرابط.</p>'}</section>
+      <section class="card"><h2>ما يُعرض للدكتور <span class="muted">تتحكم بالرابط</span></h2>
+        <p class="sub" style="margin-top:0">حدّد المدة والأقسام اللي يشوفها الدكتور في صفحته. تُحفظ مع البيانات وتوصل له عند أول مزامنة.</p>
+        <div class="grid g2" style="gap:8px">
+          <label class="f">المدة<select id="dvR">${[['7', 'آخر ٧ أيام'], ['14', 'آخر ١٤ يوم'], ['30', 'آخر ٣٠ يوم'], ['90', 'آخر ٩٠ يوم (٣ شهور)'], ['all', 'الخطة الكاملة — كل الفترة']].map(([v, l]) => `<option value="${v}" ${DV.range === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+          <label class="f">الخطة المعروضة<select id="dvP">${[['cur', 'المرحلة الحالية فقط'], ['all', 'كل المراحل']].map(([v, l]) => `<option value="${v}" ${DV.plan === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label>
+        </div>
+        <div class="grid g2" style="margin-top:10px;gap:6px 12px">
+          <label class="row"><input type="checkbox" data-dv="kpi" ${DV.secs.kpi ? 'checked' : ''} style="width:20px;height:20px"> المؤشرات</label>
+          <label class="row"><input type="checkbox" data-dv="chart" ${DV.secs.chart ? 'checked' : ''} style="width:20px;height:20px"> الرسوم البيانية</label>
+          <label class="row"><input type="checkbox" data-dv="vids" ${DV.secs.vids ? 'checked' : ''} style="width:20px;height:20px"> فيديوهات التمارين</label>
+          <label class="row"><input type="checkbox" data-dv="plan" ${DV.secs.plan ? 'checked' : ''} style="width:20px;height:20px"> تمارين الخطة</label>
+          <label class="row"><input type="checkbox" data-dv="notes" ${DV.secs.notes ? 'checked' : ''} style="width:20px;height:20px"> الملاحظات</label>
+          <label class="row"><input type="checkbox" data-dv="day" ${DV.secs.day ? 'checked' : ''} style="width:20px;height:20px"> تفاصيل اليوم المعيّن</label>
+        </div>
+        <div class="row" style="margin-top:12px"><button class="btn" id="dvPrev" ${link ? '' : 'disabled'}>فتح معاينة الصفحة ←</button><span class="muted" style="font-size:12.5px">تُحدَّث تلقائياً بعد المزامنة</span></div>
+      </section>
       <section class="card"><h2>نقل البيانات</h2>
         <p class="sub" style="margin-top:0">بيانات نسخة رُكبة القديمة على هذا الجهاز انقلت تلقائياً. ولو عندك ملف تصدير من جهاز ثاني، استورده. الدمج ياخذ الأحدث لكل يوم.</p>
         <div class="row"><label class="btn" for="imp">استيراد ملف</label><input type="file" id="imp" accept=".json,application/json" hidden>${CAP.downloads ? '<button class="btn" id="exp">تصدير نسخة</button>' : ''}${!gh ? `<button class="btn primary" id="saveNow" ${dirty ? '' : 'disabled'}>حفظ الآن</button>` : ''}</div></section>
@@ -2280,6 +2307,16 @@ VIEWS.settings = {
       try { await AI.text('رد بكلمة "تمام" فقط.'); toast('Claude مفعّل'); render(); } catch (e) { toast(AI.err(e)); as.disabled = false; as.textContent = 'حفظ وتجربة'; } };
     const ao = $('#aOff', root); if (ao) ao.onclick = () => { const s = Sync.secrets(); delete s.apiKey; Sync.setSecrets(s); render(); };
     const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = fld(cp, '#docLink'); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
+    // ما يُعرض للدكتور: المدة والأقسام (تُحفظ داخل البيانات فتوصل للدكتور بالمزامنة)
+    const dvApply = () => {
+      markDirty('cfg');
+      if (Sync.enabled()) { manualSave = true; clearTimeout(saveTimer); saveTimer = setTimeout(() => saveCloud(), 600); toast('حُفظ — يوصل للدكتور بالمزامنة'); }
+      else toast('حُفظ على هذا الجهاز — فعّل المزامنة عشان يوصل للدكتور');
+    };
+    const dvR = $('#dvR', root); if (dvR) dvR.onchange = () => { const v = docView(); v.range = dvR.value; D.profile.docView = v; dvApply(); };
+    const dvP = $('#dvP', root); if (dvP) dvP.onchange = () => { const v = docView(); v.plan = dvP.value; D.profile.docView = v; dvApply(); };
+    $$('[data-dv]', root).forEach(cb => cb.onchange = () => { const v = docView(); v.secs[cb.dataset.dv] = cb.checked; D.profile.docView = v; dvApply(); });
+    const dvPv = $('#dvPrev', root); if (dvPv) dvPv.onclick = () => { const gid = Sync.secrets().gistId; if (!gid) { toast('فعّل المزامنة أولاً'); return; } window.open(location.origin + location.pathname + '?d=' + encodeURIComponent(gid) + '&pv=' + Date.now(), '_blank'); };
     const vs = $('#vSave', root); if (vs) vs.onclick = async () => {
       const t = fld(vs, '#vTok').value.trim();
       if (!t) { toast('الصق التوكن'); return; }

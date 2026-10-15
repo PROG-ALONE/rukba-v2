@@ -549,12 +549,17 @@ function saveState() {
 }
 addEventListener('pagehide', () => { if (D && EDIT) persist(); });
 
+function contentBox() {
+  let c = $('.view-content', $('#main'));
+  if (!c) { $('#main').innerHTML = '<div class="view-content"></div>'; c = $('.view-content', $('#main')); }
+  return c;
+}
 async function boot() {
   try {
-    $('#main').innerHTML = '<div class="skeleton" style="color:var(--accent)">جاري بدء التشغيل…</div>';
+    contentBox().innerHTML = '<div class="skeleton" style="color:var(--accent)">جاري بدء التشغيل…</div>';
     DOC = new URLSearchParams(location.search).get('d');
     try { D = await (await fetch('data.json', { cache: 'no-store' })).json(); }
-    catch (e) { $('#main').innerHTML = '<div class="skeleton">تعذر تحميل بيانات المتابعة. أعد فتح الصفحة.</div>'; return; }
+    catch (e) { contentBox().innerHTML = '<div class="skeleton">تعذر تحميل بيانات المتابعة. أعد فتح الصفحة.</div>'; return; }
     D.cfgAt = D.cfgAt || 1;
     route.tab = ls.get('rukba.tab') || 'home';
     if (window.claude?.use) {                       // داخل Claude
@@ -584,7 +589,7 @@ async function boot() {
     if (Sync.enabled()) saveCloud(true);
   } catch (e) {
     console.error('Boot error:', e);
-    $('#main').innerHTML = '<div class="skeleton" style="color:var(--bad);padding:20px">خطأ في التشغيل:<br><pre style="direction:ltr;font-size:12px;overflow:auto">' + esc(e.stack || e.message || String(e)) + '</pre></div>';
+    contentBox().innerHTML = '<div class="skeleton" style="color:var(--bad);padding:20px">خطأ في التشغيل:<br><pre style="direction:ltr;font-size:12px;overflow:auto">' + esc(e.stack || e.message || String(e)) + '</pre></div>';
   }
 }
 function setMode() {
@@ -722,7 +727,7 @@ function render() {
   if (!EDIT && (route.tab === 'today' || route.tab === 'settings' || route.tab === 'reports')) route.tab = 'home';
   for (const k in CH) delete CH[k];
   const mainEl = $('#main');
-  const container = $('.view-content', mainEl);
+  const container = contentBox();
   if (!container) { console.error('container not found'); return; }
   const V = VIEWS[route.tab];
   if (!V || !V.html) { console.error('View not found:', route.tab); return; }

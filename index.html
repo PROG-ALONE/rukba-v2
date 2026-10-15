@@ -1096,6 +1096,19 @@ function printReport(kind, from, to) {
   const w = window.open('', '_blank');
   if (!w) { toast('المتصفح منع النافذة. اسمح بالنوافذ المنبثقة.'); return; }
   w.document.write(html); w.document.close();
+  // شريط أدوات عائم داخل نافذة الطباعة: إغلاق + إعادة طباعة (يختفي عند الطباعة)
+  const bar = w.document.createElement('div');
+  bar.className = 'print-bar';
+  bar.innerHTML = `<button class="btn" data-act="close">✕ إغلاق</button><button class="btn primary" data-act="print">🖶 طباعة / PDF</button>`;
+  const st = w.document.createElement('style');
+  st.textContent = `.print-bar{position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;gap:10px;justify-content:center;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(11,11,13,.92);backdrop-filter:blur(8px);border-top:1px solid #2a2a2e}
+  .print-bar .btn{cursor:pointer;padding:9px 18px;border-radius:10px;border:1px solid #3a3a40;background:#1a1a1e;color:#f2f0eb;font:600 14px/1 -apple-system,system-ui,sans-serif}
+  .print-bar .btn.primary{background:#0b6e6e;border-color:#0b6e6e;color:#fff}
+  @media print{.print-bar{display:none!important}}`;
+  w.document.head.appendChild(st);
+  w.document.body.appendChild(bar);
+  bar.querySelector('[data-act="close"]').onclick = () => w.close();
+  bar.querySelector('[data-act="print"]').onclick = () => { try { w.focus(); w.print(); } catch {} };
   setTimeout(() => { try { w.focus(); w.print(); } catch {} }, 400);
 }
 function logsCSV(from, to) {

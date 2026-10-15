@@ -577,11 +577,16 @@ const Sync = {
 
 /* ================= الفيديو (رفع لخدمة خارجية) ================= */
 const Vid = {
-  cfg() { const s = Sync.secrets(); return { cloud: s.cloud, preset: s.preset }; },
-  ready() { const c = this.cfg(); return !!(c.cloud && c.preset); },
+  cfg() { const s = Sync.secrets(); return { cloud: s.cloud, preset: s.preset, ghToken: s.ghToken, ghRepo: s.ghRepo, ghOwner: s.ghOwner }; },
+  ready() { const c = this.cfg(); return !!(c.ghToken || (c.cloud && c.preset)); },
   async upload(file) {
     const c = this.cfg();
-    if (!c.cloud || !c.preset) throw new Error('NO_CFG');
+    if (c.ghToken) return this.uploadGH(file, c);
+    if (c.cloud && c.preset) return this.uploadCF(file, c);
+    throw new Error('NO_CFG');
+  },
+  // احتياطي: رفع لـ Cloudinary (محجوب في بعض الدول)
+  async uploadCF(file, c) {
     if (file.size > 100 * 1024 * 1024) throw new Error('BIG');
     const fd = new FormData();
     fd.append('file', file);
@@ -590,7 +595,44 @@ const Vid = {
     const res = await fetch(`https://api.cloudinary.com/v1_1/${encodeURIComponent(c.cloud)}/video/upload`, { method: 'POST', body: fd });
     if (!res.ok) { let m = 'فشل الرفع'; try { m = (await res.json()).error?.message || m; } catch {} throw new Error(m); }
     const j = await res.json();
-    return { url: j.secure_url, publicId: j.public_id };
+    return { url: j.secure_url, publicId: j.public_id, host: 'cloudinary' };
+  },
+  // الأساسي: الرفع لحساب GitHub (نفس حساب التطبيق). يُنشئ مستودع rukba-videos تلقائياً،
+  // ويخدم الفيديو عبر GitHub Pages بنوع video/webm حتى يُشغَّل داخل التطبيق ورابط الدكتور.
+  async uploadGH(file, c) {
+    if (file.size > 90 * 1024 * 1024) throw new Error('BIG');
+    const tok = c.ghToken;
+    const gh = (p, opt = {}) => fetch('https://api.github.com' + p, { ...opt, cache: 'no-store',
+      headers: { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', Authorization: 'Bearer ' + tok, ...(opt.body ? { 'Content-Type': 'application/json' } : {}) } });
+    let owner = c.ghOwner;
+    if (!owner) {
+      const u = await gh('/user');
+      if (u.status === 401) throw new Error('توكن GitHub غير صحيح أو منتهي');
+      if (!u.ok) throw new Error('تعذر الاتصال بـ GitHub');
+      owner = (await u.json()).login;
+      Sync.setSecrets({ ...Sync.secrets(), ghOwner: owner });
+    }
+    const repoName = c.ghRepo || 'rukba-videos';
+    let full = owner + '/' + repoName, branch = 'main';
+    const rr = await gh('/repos/' + full);
+    if (rr.status === 404) {                                    // المستودع ما موجود → أنشئه
+      const cr = await gh('/user/repos', { method: 'POST', body: JSON.stringify({ name: repoName, private: false, auto_init: true, description: 'Rukba — exercise videos (public links for the doctor)' }) });
+      if (cr.ok) branch = (await cr.json()).default_branch || 'main';
+      else if (cr.status === 422) { /* موجود مسبقاً */ }
+      else { full = 'PROG-ALONE/rukba-v2'; }                     // بديل: مستودع التطبيق
+    } else if (rr.ok) { branch = (await rr.json()).default_branch || 'main'; }
+    if (full !== 'PROG-ALONE/rukba-v2') {                        // فعّل Pages ليخدم الفيديو بنوعه الصحيح
+      await gh('/repos/' + full + '/pages', { method: 'POST', body: JSON.stringify({ source: { branch, path: '/' } }) }).catch(() => {});
+    }
+    const buf = new Uint8Array(await file.arrayBuffer());
+    let bin = ''; for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+    const ext = (file.type || '').includes('mp4') ? 'mp4' : 'webm';
+    const fname = 'v-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7) + '.' + ext;
+    const path = 'videos/' + fname;
+    const pr = await gh('/repos/' + full + '/contents/' + path, { method: 'PUT', body: JSON.stringify({ message: 'video ' + fname, content: btoa(bin), branch }) });
+    if (!pr.ok) throw new Error(pr.status === 403 ? 'التوكن ما عنده صلاحية كتابة (repo)' : ('فشل الحفظ (HTTP ' + pr.status + ')'));
+    const base = full === 'PROG-ALONE/rukba-v2' ? 'https://prog-alone.github.io/rukba-v2/' : ('https://' + owner.toLowerCase() + '.github.io/' + repoName + '/');
+    return { url: base + path, publicId: full + '/' + path, host: 'github' };
   },
   // يفتح الكاميرا داخل التطبيق ويسجّل فيديو (MediaRecorder) — يعيد Blob
   record(maxSec = 30) {
@@ -697,14 +739,13 @@ async function startRecord(date, exId, btn) {
   if (!EDIT) return;
   if (!Vid.ready()) {          // لم يُضبط رفع الفيديو بعد → افتح الإعدادات
     dialog('إعداد رفع الفيديو',
-      `<p class="sub" style="margin-top:0">الفيديوهات ترفع لخدمة <b>Cloudinary</b> (مجانية) ويظهر رابطها للدكتور عبر رابط اليوم.</p>
-       <p class="sub">1) سجّل في <a href="https://cloudinary.com/users/register/free" target="_blank" rel="noopener">cloudinary.com</a><br>2) من <b>Settings → Upload → Add upload preset</b> (اختر <i>Unsigned</i>)<br>3) انسخ <b>Cloud name</b> واسم الـ <b>Preset</b> وضعهما بالأسفل.</p>
-       <label class="f">Cloud name<input type="text" id="vc" dir="ltr" placeholder="e.g. dq0m7xyz" value="${esc(Sync.secrets().cloud || '')}"></label>
-       <label class="f" style="margin-top:8px">Upload preset<input type="text" id="vp" dir="ltr" placeholder="e.g. rukba_vids" value="${esc(Sync.secrets().preset || '')}"></label>`,
+      `<p class="sub" style="margin-top:0">الفيديو يُرفع لحسابك في <b>GitHub</b> (نفس حساب التطبيق)، ويظهر للدكتور مع رابط اليوم. يتنشأ مستودع صغير <span class="ltr">rukba-videos</span> تلقائياً.</p>
+       <p class="sub">1) افتح <a href="https://github.com/settings/tokens/new?scopes=repo&description=rukba-videos" target="_blank" rel="noopener">إنشاء توكن GitHub</a><br>2) اختر صلاحية <b>repo</b> وأنشئه<br>3) الصق التوكن بالأسفل.</p>
+       <label class="f">توكن GitHub<input type="password" id="vTok" dir="ltr" placeholder="ghp_…" value="${esc(Sync.secrets().ghToken || '')}"></label>`,
       [{ label: 'لاحقاً' }, { label: 'حفظ', cls: 'primary', run: dl => {
-        const c = $('#vc', dl).value.trim(), p = $('#vp', dl).value.trim();
-        if (!c || !p) { toast('أكمل الحقلين'); return false; }
-        Sync.setSecrets({ ...Sync.secrets(), cloud: c, preset: p }); toast('حُفظ. جرّب التصوير الآن');
+        const t = $('#vTok', dl).value.trim();
+        if (!t) { toast('الصق التوكن'); return false; }
+        Sync.setSecrets({ ...Sync.secrets(), ghToken: t }); toast('حُفظ. جرّب التصوير الآن');
       } }]);
     return;
   }
@@ -2079,11 +2120,11 @@ VIEWS.settings = {
              <label class="f" style="margin-top:8px">رقم الـ Gist (اختياري)<input type="text" id="gId" dir="ltr" value="${esc(s.gistId || '')}"></label>
              <div class="row" style="margin-top:8px"><button class="btn primary" id="gOn">فعّل المزامنة</button></div>`}</section>` : ''}
       <section class="card"><h2>رفع الفيديو للدكتور ${Vid.ready() ? '<span class="badge ok">مفعّل</span>' : '<span class="badge">غير مفعّل</span>'}</h2>
-        <p class="sub" style="margin-top:0">لكل تمرين زر ● يصوّر فيديو (20–30 ثانية) ويرفعه لـ Cloudinary، ويشوفه الدكتور مع رابط اليوم.</p>
+        <p class="sub" style="margin-top:0">لكل تمرين زر ● يصوّر فيديو (20–30 ثانية) ويرفعه لحسابك في <b>GitHub</b>، ويشوفه الدكتور مع رابط اليوم.</p>
         ${Vid.ready() ? `<div class="row"><button class="btn" id="vReset">تغيير الإعداد</button></div>`
-        : `<label class="f">Cloud name<input type="text" id="vCloud" dir="ltr" placeholder="e.g. dq0m7xyz" value="${esc(Sync.secrets().cloud || '')}"></label>
-           <label class="f" style="margin-top:8px">Upload preset (unsigned)<input type="text" id="vPreset" dir="ltr" placeholder="e.g. rukba_vids" value="${esc(Sync.secrets().preset || '')}"></label>
-           <div class="row" style="margin-top:8px"><button class="btn primary" id="vSave">حفظ الإعداد</button><a class="btn" href="https://cloudinary.com/users/register/free" target="_blank" rel="noopener">إنشاء حساب مجاني</a></div>`}
+        : `<p class="sub">أنشئ توكن GitHub بصلاحية <b>repo</b> والصقه هنا. يتنشأ مستودع <span class="ltr">rukba-videos</span> تلقائياً عند أول تصوير.</p>
+           <label class="f">توكن GitHub<input type="password" id="vTok" dir="ltr" placeholder="ghp_…" value="${esc(Sync.secrets().ghToken || '')}"></label>
+           <div class="row" style="margin-top:8px"><button class="btn primary" id="vSave">حفظ الإعداد</button><a class="btn" href="https://github.com/settings/tokens/new?scopes=repo&description=rukba-videos" target="_blank" rel="noopener">إنشاء توكن</a></div>`}
       </section>
       <section class="card"><h2>رابط الدكتور</h2>
         ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يشوف عرض التقدم بس: الرئيسية، والخطة بتمارينها، والسجل، والإصابة. وما يشوف التسجيل ولا الإعدادات.</p>'
@@ -2108,11 +2149,11 @@ VIEWS.settings = {
     const ao = $('#aOff', root); if (ao) ao.onclick = () => { const s = Sync.secrets(); delete s.apiKey; Sync.setSecrets(s); render(); };
     const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = $('#docLink', root); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
     const vs = $('#vSave', root); if (vs) vs.onclick = () => {
-      const c = $('#vCloud', root).value.trim(), p = $('#vPreset', root).value.trim();
-      if (!c || !p) { toast('أكمل الحقلين'); return; }
-      Sync.setSecrets({ ...Sync.secrets(), cloud: c, preset: p }); toast('حُفظ إعداد الفيديو ✓'); render();
+      const t = $('#vTok', root).value.trim();
+      if (!t) { toast('الصق التوكن'); return; }
+      Sync.setSecrets({ ...Sync.secrets(), ghToken: t, ghOwner: undefined, ghRepo: undefined }); toast('حُفظ إعداد الفيديو ✓'); render();
     };
-    const vr = $('#vReset', root); if (vr) vr.onclick = () => { const s = Sync.secrets(); delete s.cloud; delete s.preset; Sync.setSecrets(s); render(); };
+    const vr = $('#vReset', root); if (vr) vr.onclick = () => { const s = Sync.secrets(); delete s.ghToken; delete s.ghOwner; delete s.ghRepo; delete s.cloud; delete s.preset; Sync.setSecrets(s); render(); };
     const ex = $('#exp', root); if (ex) ex.onclick = async () => { try { await CAP.downloads.save({ filename: `rukba-data-${today()}.json`, data: JSON.stringify(D, null, 1) }); } catch {} };
     $('#imp', root).onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => {
       try { const n = importData(JSON.parse(rd.result)); markDirty('cfg'); toast(`تم دمج ${n} يوم`); render(); }

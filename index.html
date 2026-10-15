@@ -2147,20 +2147,22 @@ VIEWS.settings = {
     </div>`;
   },
   bind(root) {
+    // عند فتح القسم كنافذة، تُنقل البطاقة خارج root — فلازم ندوّر الحقول بالنسبة للبطاقة نفسها
+    const fld = (el, sel) => (el.closest('.card') || root).querySelector(sel) || document.querySelector(sel);
     $$('[data-pk]', root).forEach(i => i.onchange = () => { D.profile[i.dataset.pk] = i.type === 'number' ? num(i.value) : i.value; markDirty('cfg'); toast('حُفظ'); });
     const sn = $('#saveNow', root); if (sn) sn.onclick = () => { manualSave = true; clearTimeout(saveTimer); if (MODE === 'claude') dirty = true; saveCloud(true); };
     const go = $('#gOff', root); if (go) go.onclick = () => { Sync.setSecrets({ ...Sync.secrets(), on: false }); saveState(); render(); };
     const gon = $('#gOn', root); if (gon) gon.onclick = async () => {
-      const token = $('#gTok', root).value.trim(), gistId = $('#gId', root).value.trim(); if (!token) { toast('الصق التوكن'); return; }
+      const token = fld(gon, '#gTok').value.trim(), gistId = fld(gon, '#gId').value.trim(); if (!token) { toast('الصق التوكن'); return; }
       Sync.setSecrets({ ...Sync.secrets(), token, gistId: gistId || Sync.secrets().gistId, on: true }); manualSave = true; await saveCloud(true); render(); };
     const as = $('#aSave', root); if (as) as.onclick = async () => {
-      const k = $('#aKey', root).value.trim(); if (!k) { toast('الصق المفتاح'); return; }
+      const k = fld(as, '#aKey').value.trim(); if (!k) { toast('الصق المفتاح'); return; }
       Sync.setSecrets({ ...Sync.secrets(), apiKey: k }); as.disabled = true; as.textContent = 'جاري التجربة…';
       try { await AI.text('رد بكلمة "تمام" فقط.'); toast('Claude مفعّل'); render(); } catch (e) { toast(AI.err(e)); as.disabled = false; as.textContent = 'حفظ وتجربة'; } };
     const ao = $('#aOff', root); if (ao) ao.onclick = () => { const s = Sync.secrets(); delete s.apiKey; Sync.setSecrets(s); render(); };
-    const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = $('#docLink', root); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
+    const cp = $('#cpLink', root); if (cp) cp.onclick = async () => { const i = fld(cp, '#docLink'); try { await navigator.clipboard.writeText(i.value); toast('انسخ'); } catch { i.select(); } };
     const vs = $('#vSave', root); if (vs) vs.onclick = () => {
-      const t = $('#vTok', root).value.trim();
+      const t = fld(vs, '#vTok').value.trim();
       if (!t) { toast('الصق التوكن'); return; }
       Sync.setSecrets({ ...Sync.secrets(), ghToken: t, ghOwner: undefined, ghRepo: undefined }); toast('حُفظ إعداد الفيديو ✓'); render();
     };

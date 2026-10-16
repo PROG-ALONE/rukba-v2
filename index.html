@@ -600,6 +600,19 @@ async function probeTok(token) {
   catch (e) { const m = String(e.message || e); return { ok: false, hard: m.includes('غير صحيح'), msg: m }; }
 }
 
+/* ================= جودة/ضغط الفيديو =================
+   منخفضة/متوسطة/عالية — تُخزَّن في profile فتصل للدكتور عبر المزامنة. */
+function vidQ() {
+  const P = {
+    high: { w: 1280, h: 720, fps: 30, vb: 1200000, ab: 96000 },
+    mid: { w: 854, h: 480, fps: 24, vb: 700000, ab: 64000 },
+    low: { w: 640, h: 360, fps: 24, vb: 400000, ab: 48000 }
+  };
+  const key = D.profile && P[D.profile.vidQ] ? D.profile.vidQ : 'mid';
+  const q = P[key];
+  return { key, w: q.w, h: q.h, fps: q.fps, vb: q.vb, ab: q.ab, mb: ((q.vb + q.ab) * 60 / 8 / 1e6).toFixed(1) };
+}
+
 /* ================= إصلاح مدّة الفيديو المسجّل =================
    MediaRecorder يكتب ملفات WebM/MP4 بلا مدّة صحيحة (خصوصاً عند استخدام timeslice،
    أو fMP4 في Safari) فيظهر الفيديو وكأنه ثانيتان. هنا نصلح حقل المدّة داخل الحاوية.
@@ -789,7 +802,8 @@ const Vid = {
   record(maxSec = 60) {
     if (!navigator.mediaDevices?.getUserMedia) return this.file();
     return new Promise((resolve, reject) => {
-      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: true })
+      const q = vidQ();
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: q.w }, height: { ideal: q.h }, frameRate: { ideal: q.fps, max: 30 } }, audio: true })
         .then(stream => this._ui(stream, resolve, reject, maxSec))
         .catch(() => this.file().then(resolve, reject));
     });
@@ -838,7 +852,12 @@ const Vid = {
         ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
         : ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4'];
       const mime = order.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
-      try { mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); } catch (e) { fail('الكاميرا ما تسمح بالتسجيل'); return; }
+      // ضغط حسب الجودة المختارة → حجم أصغر بكثير (يفتح ويتحمّل بسرعة)
+      const q = vidQ();
+      const opts = { videoBitsPerSecond: q.vb, audioBitsPerSecond: q.ab };
+      if (mime) opts.mimeType = mime;
+      try { mr = new MediaRecorder(stream, opts); }
+      catch (e) { try { mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); } catch (e2) { fail('الكاميرا ما تسمح بالتسجيل'); return; } }
       mr.ondataavailable = e => { if (e.data?.size) chunks.push(e.data); };
       mr.onstop = async () => {
         clearInterval(tick); tEl.classList.remove('on', 'live');
@@ -1537,7 +1556,7 @@ function dayDetail(d) {
     ${s.ph ? `<div class="tiles">${[['التمارين', s.rest ? 'راحة' : `${s.done}/${s.planned}`], ['الخطوات', fmt(s.log?.steps)], ['ألم التمارين', s.painMax ?? '—', painCol(s.painMax, s.limit)], ['ألم الصبح', s.painMorning ?? '—', painCol(s.painMorning, s.limit)]].map(([l, v, c]) => `<div class="tile"><span>${l}</span><b style="${c ? 'color:' + c : ''}">${v}</b></div>`).join('')}</div>
     ${!s.rest ? `<div class="exdots">${phaseExFor(s.ph, d).map(e => { const v = s.log?.ex?.[e.id]; return `<span class="xd ${v?.d === true ? 'y' : v?.d === false ? 'n' : ''}" title="${esc(e.name)}">${esc(e.short || e.name.slice(0, 3))}</span>`; }).join('')}</div>` : ''}` : '<p class="muted">قبل بداية العلاج.</p>'}
     ${vids.length ? `<div class="vids-strip">${vids.map(v => `<span class="ex-vid"><a class="vidchip mine" href="${esc(v.url)}" target="_blank" rel="noopener">▶ ${esc(v.name)}</a></span>`).join('')}</div>
-      <div class="vids-strip" style="margin-top:6px">${vids.map(v => `<video src="${esc(v.url)}" controls preload="metadata"></video>`).join('')}</div>` : ''}
+      <div class="vids-strip" style="margin-top:6px">${vids.map(v => `<video src="${esc(v.url)}" controls playsinline preload="none"></video>`).join('')}</div>` : ''}
     ${s.log?.notes ? `<p dir="auto" class="dnote">${esc(s.log.notes)}</p>` : '<p class="muted" style="margin:6px 0 0">لا توجد ملاحظات.</p>'}`;
 }
 function calHtml() {
@@ -1627,7 +1646,7 @@ VIEWS.dsum = {
           const list = recs.filter(r => r.d === d);
           return `<section class="card" id="v-${d}" style="margin-top:12px"><h2>${wd(d)} ${fD(d, { day: 'numeric', month: 'long' })} <span class="badge ok">${list.length} فيديو</span></h2>
             <div class="vids-strip">${list.map(r => `<span class="ex-vid"><a class="vidchip mine" href="${esc(r.url)}" target="_blank" rel="noopener">▶ ${esc(r.name)}</a></span>`).join('')}</div>
-            <div class="vids-strip" style="margin-top:6px">${list.map(r => `<figure style="margin:0;display:flex;flex-direction:column;gap:4px"><video src="${esc(r.url)}" controls preload="metadata"></video><figcaption style="font-size:12px;color:var(--muted);text-align:center">${esc(r.name)}</figcaption></figure>`).join('')}</div></section>`;
+            <div class="vids-strip" style="margin-top:6px">${list.map(r => `<figure style="margin:0;display:flex;flex-direction:column;gap:4px"><video src="${esc(r.url)}" controls playsinline preload="none"></video><figcaption style="font-size:12px;color:var(--muted);text-align:center">${esc(r.name)}</figcaption></figure>`).join('')}</div></section>`;
         }).join('');
     // لو الرابط فيه يوم محدّد (?day=) → نضيف تفاصيل ذلك اليوم كأول قسم
     const daySec = (DV.secs.day && DOC_DAY && /^\d{4}-\d{2}-\d{2}$/.test(DOC_DAY))
@@ -2366,6 +2385,14 @@ VIEWS.settings = {
         : `<p class="sub">أنشئ توكن GitHub بصلاحية <b>repo</b> والصقه هنا. يتنشأ مستودع <span class="ltr">rukba-videos</span> تلقائياً عند أول تصوير.</p>
            <label class="f">توكن GitHub<input type="password" id="vTok" dir="ltr" placeholder="ghp_…" value="${esc(Sync.secrets().ghToken || '')}"></label>
            <div class="row" style="margin-top:8px"><button class="btn primary" id="vSave">حفظ الإعداد</button><a class="btn" href="https://github.com/settings/tokens/new?scopes=repo&description=rukba-videos" target="_blank" rel="noopener">إنشاء توكن</a></div>`}
+        <div class="sep"></div>
+        <label class="f">جودة الفيديو <span class="muted">(الأخف يفتح أسرع)</span>
+          <select id="vidQsel">
+            <option value="high"${vidQ().key === 'high' ? ' selected' : ''}>عالية — ٧٢٠p</option>
+            <option value="mid"${vidQ().key === 'mid' ? ' selected' : ''}>متوسطة — ٤٨٠p (موصى)</option>
+            <option value="low"${vidQ().key === 'low' ? ' selected' : ''}>منخفضة — ٣٦٠p (الأخف)</option>
+          </select></label>
+        <p class="sub" style="margin:4px 0 0">يُضغط تلقائياً ${vidQ().w}×${vidQ().h} — دقيقة كاملة ≈ ${vidQ().mb} ميجا تقريباً.</p>
       </section>
       <section class="card"><h2>رابط الدكتور</h2>
         ${!gh ? '<p class="sub" style="margin:0">من زر المشاركة بالأعلى، أضف إيميل الدكتور كمشاهد. يفتح له صفحة واحدة فيها ملخص المتابعة وفيديوهات التمارين، وما يشوف التسجيل ولا الإعدادات.</p>'
@@ -2444,6 +2471,11 @@ VIEWS.settings = {
       render();
     };
     const vr = $('#vReset', root); if (vr) vr.onclick = () => { const s = Sync.secrets(); delete s.ghToken; delete s.ghOwner; delete s.ghRepo; delete s.cloud; delete s.preset; Sync.setSecrets(s); render(); };
+    const vq = $('#vidQsel', root); if (vq) vq.onchange = () => {
+      D.profile.vidQ = vq.value; markDirty('cfg');
+      if (Sync.enabled()) saveCloud();
+      toast('حُفظت الجودة ✓'); render();
+    };
     const ex = $('#exp', root); if (ex) ex.onclick = async () => { try { await CAP.downloads.save({ filename: `rukba-data-${today()}.json`, data: JSON.stringify(D, null, 1) }); } catch {} };
     $('#imp', root).onchange = e => { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => {
       try { const n = importData(JSON.parse(rd.result)); markDirty('cfg'); toast(`تم دمج ${n} يوم`); render(); }

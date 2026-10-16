@@ -600,6 +600,113 @@ async function probeTok(token) {
   catch (e) { const m = String(e.message || e); return { ok: false, hard: m.includes('غير صحيح'), msg: m }; }
 }
 
+/* ================= إصلاح مدّة الفيديو المسجّل =================
+   MediaRecorder يكتب ملفات WebM/MP4 بلا مدّة صحيحة (خصوصاً عند استخدام timeslice،
+   أو fMP4 في Safari) فيظهر الفيديو وكأنه ثانيتان. هنا نصلح حقل المدّة داخل الحاوية.
+   أي خلل بالتحليل = نُرجع الأصل بلا تعديل (ما نفسد الملف). */
+function fixWebmDuration(bytes, ms) {
+  try {
+    const d = bytes;
+    const vlen = b => { for (let i = 0; i < 8; i++) if (b & (0x80 >> i)) return i + 1; return 8; };
+    const readId = p => { const L = vlen(d[p]); let v = 0; for (let i = 0; i < L; i++) v = v * 256 + d[p + i]; return { L, v }; };
+    const readSize = p => { const L = vlen(d[p]), m = 0xFF >> L; let v = d[p] & m, unk = (d[p] & m) === m; for (let i = 1; i < L; i++) { v = v * 256 + d[p + i]; if (d[p + i] !== 0xFF) unk = false; } return { L, v, unk }; };
+    const enc = (v, L) => { if (!(v >= 0) || v >= Math.pow(2, 7 * L) - 1) return null; const o = new Uint8Array(L); let x = v; for (let i = L - 1; i >= 0; i--) { o[i] = x & 0xFF; x = Math.floor(x / 256); } o[0] |= 0x80 >> (L - 1); return o; };
+    let p = 0, seg = null;
+    while (p + 2 <= d.length) {
+      const id = readId(p), sz = readSize(p + id.L), ds = p + id.L + sz.L;
+      if (id.v === 0x18538067) { seg = { sizePos: p + id.L, sizeLen: sz.L, size: sz.v, unk: sz.unk, dataStart: ds }; break; }
+      if (sz.unk) break;
+      p = ds + sz.v;
+    }
+    if (!seg) return bytes;
+    const segEnd = seg.unk ? d.length : Math.min(seg.dataStart + seg.size, d.length);
+    let info = null, hasCues = false, q = seg.dataStart;
+    while (q + 2 <= segEnd) {
+      const id = readId(q), sz = readSize(q + id.L), ds = q + id.L + sz.L;
+      if (id.v === 0x1549A966) info = { sizePos: q + id.L, sizeLen: sz.L, size: sz.v, dataStart: ds };
+      if (id.v === 0x1C53BB6B) hasCues = true;
+      if (sz.unk) break;
+      q = ds + sz.v;
+    }
+    if (!info) return bytes;
+    let p2 = info.dataStart, infoEnd = Math.min(info.dataStart + info.size, d.length), tcs = 1000000, dur = null;
+    while (p2 + 2 <= infoEnd) {
+      const id = readId(p2), sz = readSize(p2 + id.L), ds = p2 + id.L + sz.L;
+      if (id.v === 0x2AD7B1) { let v = 0; for (let i = 0; i < sz.v; i++) v = v * 256 + d[ds + i]; tcs = v || 1000000; }
+      if (id.v === 0x4489) dur = { pos: ds, size: sz.v };
+      if (sz.unk) break;
+      p2 = ds + sz.v;
+    }
+    const ticks = ms * 1000000 / (tcs || 1000000);
+    if (dur) {                                    // موجود → نستبدل القيمة بنفس الحجم (بلا إزاحات)
+      const out = new Uint8Array(d), ov = new DataView(out.buffer);
+      if (dur.size === 8) ov.setFloat64(dur.pos, ticks, false);
+      else if (dur.size === 4) ov.setFloat32(dur.pos, ticks, false);
+      else return bytes;
+      return out;
+    }
+    if (hasCues) return bytes;                    // ما نُزيح البيانات كي لا نفسد فهارس Cues
+    const val = new Uint8Array(11); val[0] = 0x44; val[1] = 0x89; val[2] = 0x88;
+    new DataView(val.buffer).setFloat64(3, ticks, false);
+    const infoBytes = enc(info.size + 11, info.sizeLen); if (!infoBytes) return bytes;
+    let segBytes = null;
+    if (!seg.unk) { segBytes = enc(seg.size + 11, seg.sizeLen); if (!segBytes) return bytes; }
+    const at = info.dataStart, merged = new Uint8Array(d.length + 11);
+    merged.set(d.subarray(0, at), 0); merged.set(val, at); merged.set(d.subarray(at), at + 11);
+    merged.set(infoBytes, info.sizePos);
+    if (segBytes) merged.set(segBytes, seg.sizePos);
+    return merged;
+  } catch { return bytes; }
+}
+function fixMp4Duration(bytes, ms) {
+  try {
+    const d = bytes, dv = new DataView(d.buffer, d.byteOffset, d.byteLength);
+    const b32 = p => dv.getUint32(p, false);
+    const findBox = (start, end, type) => {
+      let p = start;
+      while (p + 8 <= end) {
+        let size = b32(p); const t = String.fromCharCode(d[p + 4], d[p + 5], d[p + 6], d[p + 7]);
+        let hdr = 8;
+        if (size === 1) { size = Number(dv.getBigUint64(p + 8, false)); hdr = 16; }
+        else if (size === 0) size = end - p;
+        if (size < hdr || p + size > end) break;
+        if (t === type) return { hdr, size, dataStart: p + hdr, end: p + size };
+        p += size;
+      }
+      return null;
+    };
+    const moov = findBox(0, d.length, 'moov'); if (!moov) return bytes;
+    const mvhd = findBox(moov.dataStart, Math.min(moov.end, d.length), 'mvhd'); if (!mvhd) return bytes;
+    const out = new Uint8Array(d), ov = new DataView(out.buffer);
+    let ts = 1000;
+    if (d[mvhd.dataStart] === 1) {                // creation+mod 8+8، timescale 4، duration 8
+      ts = ov.getUint32(mvhd.dataStart + 20, false) || 1000;
+      ov.setBigUint64(mvhd.dataStart + 24, BigInt(Math.round(ms / 1000 * ts)), false);
+    } else {                                      // creation+mod 4+4، timescale 4، duration 4
+      ts = ov.getUint32(mvhd.dataStart + 12, false) || 1000;
+      ov.setUint32(mvhd.dataStart + 16, Math.min(0xFFFFFFFF, Math.round(ms / 1000 * ts)), false);
+    }
+    const mvex = findBox(moov.dataStart, Math.min(moov.end, d.length), 'mvex');   // fMP4: المدّة في mehd
+    const mehd = mvex && findBox(mvex.dataStart, Math.min(mvex.end, d.length), 'mehd');
+    if (mehd) { const v = BigInt(Math.round(ms / 1000 * ts));
+      try { if (d[mehd.dataStart] === 1) ov.setBigUint64(mehd.dataStart + 4, v, false); else ov.setUint32(mehd.dataStart + 4, Number(v > 0xFFFFFFFFn ? 0xFFFFFFFFn : v), false); } catch {}
+    }
+    return out;
+  } catch { return bytes; }
+}
+// يطبّق الإصلاح المناسب حسب نوع الملف (يُعيد Blob جديد أو الأصلي)
+async function fixVidDur(blob, ms) {
+  try {
+    if (!blob || !ms || ms < 400) return blob;
+    const type = (blob.type || '').toLowerCase();
+    const isMp4 = type.includes('mp4') || type.includes('quicktime');
+    const buf = new Uint8Array(await blob.arrayBuffer());
+    const fixed = isMp4 ? fixMp4Duration(buf, ms) : fixWebmDuration(buf, ms);
+    if (fixed === buf) return blob;
+    return new Blob([fixed], { type: blob.type || (isMp4 ? 'video/mp4' : 'video/webm') });
+  } catch { return blob; }
+}
+
 /* ================= الفيديو (رفع لخدمة خارجية) ================= */
 const Vid = {
   cfg() { const s = Sync.secrets(); return { cloud: s.cloud, preset: s.preset, ghToken: s.ghToken || s.token, ghRepo: s.ghRepo, ghOwner: s.ghOwner }; },
@@ -726,18 +833,24 @@ const Vid = {
     const fmtT = ms => { const s = Math.floor(ms / 1000); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
     const start = () => {
       chunks = []; blob = null;
-      const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'].find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
+      const apple = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const order = apple
+        ? ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm']
+        : ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4'];
+      const mime = order.find(m => window.MediaRecorder && MediaRecorder.isTypeSupported(m)) || '';
       try { mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined); } catch (e) { fail('الكاميرا ما تسمح بالتسجيل'); return; }
       mr.ondataavailable = e => { if (e.data?.size) chunks.push(e.data); };
-      mr.onstop = () => {
+      mr.onstop = async () => {
         clearInterval(tick); tEl.classList.remove('on', 'live');
-        blob = new Blob(chunks, { type: chunks[0]?.type || 'video/webm' });
+        const durMs = Math.max(0, Date.now() - t0);
+        blob = new Blob(chunks, { type: chunks[0]?.type || mime || 'video/webm' });
         if (!blob.size) { hint.textContent = 'ما انطبع شيء — أعد المحاولة.'; bRec.disabled = false; return; }
+        try { blob = await fixVidDur(blob, durMs); } catch {}   // نصلح حقل المدّة (كان يظهر الفيديو ثانيتين)
         bRec.hidden = true; bAgain.hidden = false; bUse.hidden = false;
-        hint.textContent = 'جاهز (' + Math.round(blob.size / 1024) + ' KB) — اضغط استخدام ✓ أو أعد.';
+        hint.textContent = 'جاهز · ' + fmtT(durMs) + ' · ' + Math.round(blob.size / 1024) + ' KB — اضغط استخدام ✓ أو أعد.';
         const url = URL.createObjectURL(blob); prev.srcObject = null; prev.src = url; play(prev);
       };
-      mr.start(250); t0 = Date.now();
+      mr.start(); t0 = Date.now();
       tEl.classList.add('on', 'live'); bRec.textContent = '■ إيقاف'; hint.textContent = 'يسجّل الآن…';
       tick = setInterval(() => {
         const ms = Date.now() - t0; tEl.textContent = fmtT(ms);
@@ -746,7 +859,7 @@ const Vid = {
     };
     bRec.onclick = () => { if (!mr || mr.state === 'inactive') start(); else if (mr.state === 'recording') mr.stop(); };
     bAgain.onclick = () => { bAgain.hidden = true; bUse.hidden = true; bRec.hidden = false; bRec.textContent = '● بدء التسجيل'; hint.textContent = 'أعد التصوير.'; const u = prev.src; if (u) { URL.revokeObjectURL(u); prev.removeAttribute('src'); } prev.srcObject = stream; play(prev); };
-    bUse.onclick = () => { if (!blob) return; const f = new File([blob], 'ex.webm', { type: blob.type || 'video/webm' }); cleanup(); resolve(f); };
+    bUse.onclick = () => { if (!blob) return; const ext = (blob.type || '').includes('mp4') ? 'mp4' : 'webm'; const f = new File([blob], 'ex.' + ext, { type: blob.type || 'video/webm' }); cleanup(); resolve(f); };
     dl.querySelector('[data-x]').onclick = () => fail('ألغيت');
     dl.querySelector('[data-cancel]').onclick = () => fail('ألغيت');
     dl.addEventListener('cancel', e => { e.preventDefault(); fail('ألغيت'); });
